@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useAtom, useAtomValue } from "jotai"
-import { bookingModalOpenAtom, selectedServiceAtom, barbersData, servicesData } from "@/lib/store"
+import { bookingModalOpenAtom, selectedServiceAtom, selectedBarberAtom, barbersData, servicesData } from "@/lib/store"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -36,12 +36,13 @@ const timeSlots = [
 export function BookingModal() {
   const [open, setOpen] = useAtom(bookingModalOpenAtom)
   const selectedService = useAtomValue(selectedServiceAtom)
+  const selectedBarber = useAtomValue(selectedBarberAtom)
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     service: selectedService || "",
-    barber: "",
+    barber: selectedBarber || "",
     date: "",
     time: "",
   })
