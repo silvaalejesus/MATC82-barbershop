@@ -3,6 +3,10 @@ import { atom } from "jotai"
 export const bookingModalOpenAtom = atom(false)
 export const selectedServiceAtom = atom<string | null>(null)
 
+export const supportModalOpenAtom = atom(false)
+export const paymentModalOpenAtom = atom(false)
+export const selectedPlanAtom = atom<string | null>(null)
+
 export interface User {
   id: string
   name: string
