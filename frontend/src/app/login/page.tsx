@@ -46,7 +46,7 @@ function LoginPage() {
     } else if (formData.email.includes("@") && formData.password) {
       authenticatedUser = {
         id: "client-" + Date.now(),
-        name: "Cliente Exemplo",
+        name: "João Carlos",
         email: formData.email,
         phone: "(11) 98888-8888",
         role: "client",
