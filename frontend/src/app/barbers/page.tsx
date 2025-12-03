@@ -11,7 +11,7 @@ import { bookingModalOpenAtom, selectedBarberAtom } from "@/lib/store"
 import { BookingModal } from "@/components/booking-modal"
 import { Header } from "@/components/header"
 
-function BarbersContent() {
+function BarbersPage() {
   const setBookingModalOpen = useSetAtom(bookingModalOpenAtom)
   const setSelectedBarber = useSetAtom(selectedBarberAtom)
 
@@ -90,10 +90,4 @@ function BarbersContent() {
   )
 }
 
-export default function BarbersPage() {
-  return (
-    <Provider>
-      <BarbersContent />
-    </Provider>
-  )
-}
+export default BarbersPage

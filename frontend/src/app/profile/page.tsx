@@ -9,8 +9,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+
 import { appointmentsAtom, isAuthenticatedAtom, userAtom } from "@/lib/store";
-import { Provider, useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
+
 import {
   ArrowRight,
   Calendar,
@@ -22,25 +33,66 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-function ProfileContent() {
+function ProfilePage() {
   const router = useRouter();
+
   const isAuthenticated = useAtomValue(isAuthenticatedAtom);
   const user = useAtomValue(userAtom);
+
+  const setUser = useSetAtom(userAtom);
+
+
   const appointments = useAtomValue(appointmentsAtom);
 
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+  });
+
+  // Verifica login
   useEffect(() => {
     if (!isAuthenticated) {
       router.push("/login");
     }
   }, [isAuthenticated, router]);
 
-  if (!isAuthenticated || !user) {
-    return null;
-  }
+  // Preenche o formulário com o usuário
+  useEffect(() => {
+    if (user) {
+      setForm({
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+      });
+    }
+  }, [user]);
+
+  if (!isAuthenticated || !user) return null;
 
   const recentAppointments = appointments.slice(0, 3);
+
+  // Salvar edição
+  function handleSave() {
+    setUser({
+      name: form.name ?? "",
+      email: form.email ?? "",
+      id: user.id ?? "",
+      role: user.role ?? "",
+      phone: form.phone ?? "",
+    });
+
+    setOpen(false);
+  }
+
+ 
+  function handleLogout() {
+    setUser(null);
+    router.push("/login");
+  }
 
   return (
     <div className="min-h-screen bg-background pt-24 pb-12">
@@ -55,17 +107,20 @@ function ProfileContent() {
                 Informações Pessoais
               </CardTitle>
             </CardHeader>
+
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
                   <User className="h-8 w-8 text-primary-foreground" />
                 </div>
+
                 <div>
                   <p className="font-semibold text-foreground">{user.name}</p>
                   <p className="text-sm text-muted-foreground">Cliente</p>
                 </div>
               </div>
 
+              {/* Email e telefone */}
               <div className="space-y-3 pt-4">
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="h-4 w-4 text-muted-foreground" />
@@ -77,13 +132,72 @@ function ProfileContent() {
                 </div>
               </div>
 
-              <Button variant="outline" className="w-full mt-4 bg-transparent">
-                Editar Perfil
+              {/* Editar Perfil + Logout */}
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full mt-4 bg-transparent"
+                  >
+                    Editar Perfil
+                  </Button>
+                </DialogTrigger>
+
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Editar Perfil</DialogTitle>
+                  </DialogHeader>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium">Nome</label>
+                      <Input
+                        value={form.name}
+                        onChange={(e) =>
+                          setForm({ ...form, name: e.target.value })
+                        }
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium">Email</label>
+                      <Input
+                        value={form.email}
+                        onChange={(e) =>
+                          setForm({ ...form, email: e.target.value })
+                        }
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium">Telefone</label>
+                      <Input
+                        value={form.phone}
+                        onChange={(e) =>
+                          setForm({ ...form, phone: e.target.value })
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <DialogFooter>
+                    <Button onClick={handleSave}>Salvar</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Botão de Logout */}
+              <Button
+                variant="destructive"
+                className="w-full mt-2"
+                onClick={handleLogout}
+              >
+                Sair
               </Button>
             </CardContent>
           </Card>
 
-          {/* Appointments Preview */}
+          {/* Appointments */}
           <Card className="md:col-span-2 bg-card border-border">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -91,22 +205,17 @@ function ProfileContent() {
                   <CardTitle className="text-foreground">
                     Agendamentos Recentes
                   </CardTitle>
-                  <CardDescription className="text-muted-foreground">
-                    Seus últimos agendamentos
-                  </CardDescription>
+                  <CardDescription>Sua atividade recente</CardDescription>
                 </div>
                 <Link href="/appointments">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="bg-transparent"
-                  >
+                  <Button variant="outline" size="sm" className="bg-transparent">
                     Ver Todos
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
               </div>
             </CardHeader>
+
             <CardContent>
               <div className="space-y-4">
                 {recentAppointments.map((appointment) => (
@@ -170,10 +279,4 @@ function ProfileContent() {
   );
 }
 
-export default function ProfilePage() {
-  return (
-    <Provider>
-      <ProfileContent />
-    </Provider>
-  );
-}
+export default ProfilePage;

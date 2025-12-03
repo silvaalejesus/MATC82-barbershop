@@ -69,7 +69,7 @@ const plans = [
   },
 ]
 
-function PlansContent() {
+function PlansPage() {
   const [, setPaymentModalOpen] = useAtom(paymentModalOpenAtom)
   const [, setSupportModalOpen] = useAtom(supportModalOpenAtom)
   const [, setSelectedPlan] = useAtom(selectedPlanAtom)
@@ -185,12 +185,4 @@ function PlansContent() {
   )
 }
 
-export default function PlansPage() {
-  return (
-    <Provider>
-      <PlansContent />
-      <SupportModal />
-      <PaymentModal />
-    </Provider>
-  )
-}
+export default PlansPage
