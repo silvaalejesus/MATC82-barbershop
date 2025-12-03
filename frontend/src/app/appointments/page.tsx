@@ -25,6 +25,7 @@ import { ArrowLeft } from "lucide-react"
 
 
 function AppointmentsPage() {
+function AppointmentsPage() {
   const router = useRouter()
   const isAuthenticated = useAtomValue(isAuthenticatedAtom)
   const [appointments, setAppointments] = useAtom(appointmentsAtom)

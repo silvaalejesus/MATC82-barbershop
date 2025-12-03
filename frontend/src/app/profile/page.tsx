@@ -36,6 +36,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 function ProfilePage() {
+function ProfilePage() {
   const router = useRouter();
 
   const isAuthenticated = useAtomValue(isAuthenticatedAtom);
@@ -279,4 +280,4 @@ function ProfilePage() {
   );
 }
 
-export default ProfilePage;
+export default ProfilePage
