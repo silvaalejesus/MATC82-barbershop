@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 import type React from "react";
 import { useState } from "react";
 
-function LoginForm() {
+function LoginPage() {
   const router = useRouter();
   const setUser = useSetAtom(userAtom);
   const [formData, setFormData] = useState({
@@ -62,6 +62,7 @@ function LoginForm() {
       ) {
         router.push("/admin/dashboard");
       } else {
+        console.log("Redirecionando para o perfil do cliente");
         router.push("/profile");
       }
     } else {
@@ -147,10 +148,4 @@ function LoginForm() {
   );
 }
 
-export default function LoginPage() {
-  return (
-    <Provider>
-      <LoginForm />
-    </Provider>
-  );
-}
+export default LoginPage

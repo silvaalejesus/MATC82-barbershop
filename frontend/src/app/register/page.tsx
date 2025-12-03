@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link"
 import { Provider } from "jotai"
 
-function RegisterForm() {
+function RegisterPage() {
   const router = useRouter()
   const setUser = useSetAtom(userAtom)
   const [formData, setFormData] = useState({
@@ -151,10 +151,4 @@ function RegisterForm() {
   )
 }
 
-export default function RegisterPage() {
-  return (
-    <Provider>
-      <RegisterForm />
-    </Provider>
-  )
-}
+export default RegisterPage

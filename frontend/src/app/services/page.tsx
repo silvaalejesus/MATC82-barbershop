@@ -67,7 +67,7 @@ const allServices = [
   },
 ]
 
-function ServicesContent() {
+function ServicesPage() {
   const setBookingModalOpen = useSetAtom(bookingModalOpenAtom)
   const setSelectedService = useSetAtom(selectedServiceAtom)
 
@@ -141,10 +141,4 @@ function ServicesContent() {
   )
 }
 
-export default function ServicesPage() {
-  return (
-    <Provider>
-      <ServicesContent />
-    </Provider>
-  )
-}
+export default ServicesPage

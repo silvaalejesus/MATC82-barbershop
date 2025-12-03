@@ -12,7 +12,6 @@ import { Provider } from "jotai";
 
 export default function Home() {
   return (
-    <Provider>
       <div className="min-h-screen">
         <Header />
         <main>
@@ -25,6 +24,5 @@ export default function Home() {
         <Footer />
         <BookingModal />
       </div>
-    </Provider>
   );
 }

@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
-function AppointmentsContent() {
+function AppointmentsPage() {
   const router = useRouter()
   const isAuthenticated = useAtomValue(isAuthenticatedAtom)
   const [appointments, setAppointments] = useAtom(appointmentsAtom)
@@ -249,10 +249,4 @@ function AppointmentsContent() {
   )
 }
 
-export default function AppointmentsPage() {
-  return (
-    <Provider>
-      <AppointmentsContent />
-    </Provider>
-  )
-}
+export default AppointmentsPage

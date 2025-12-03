@@ -24,7 +24,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-function ProfileContent() {
+function ProfilePage() {
   const router = useRouter();
   const isAuthenticated = useAtomValue(isAuthenticatedAtom);
   const user = useAtomValue(userAtom);
@@ -170,10 +170,4 @@ function ProfileContent() {
   );
 }
 
-export default function ProfilePage() {
-  return (
-    <Provider>
-      <ProfileContent />
-    </Provider>
-  );
-}
+export default ProfilePage
