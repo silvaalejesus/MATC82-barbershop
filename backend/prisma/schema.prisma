@@ -16,16 +16,16 @@ datasource db {
 // ========================================================
 // ENUMS
 // ========================================================
-enum user_role {
-  client
-  admin
-  barber
-}
-
 enum appointment_status {
   confirmed
   completed
   cancelled
+}
+
+enum profile_status {
+  custumer
+  barber
+  admin
 }
 
 enum barber_status {
@@ -41,32 +41,46 @@ enum barber_status {
 // USERS
 // -------------------------
 model User {
-  id            String    @id @default(uuid())
+  id            String         @id @default(uuid())
   name          String
-  email         String    @unique
+  email         String         @unique
   phone         String?
   password_hash String
-  role          user_role @default(client)
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @updatedAt
+  role          profile_status @default(custumer)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updateAt      DateTime       @updatedAt() @map("updated_at")
 
   appointments Appointment[]
+}
+
+// -------------------------
+// ADMINS
+// -------------------------
+model Admin {
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  phone         String?
+  password_hash String
+  role          profile_status @default(admin)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updateAt      DateTime       @updatedAt() @map("updated_at")
 }
 
 // -------------------------
 // BARBERS
 // -------------------------
 model Barber {
-  id          String        @id @default(uuid())
+  id          String         @id @default(uuid())
   name        String
-  email       String        @unique
+  email       String         @unique
   phone       String?
-  role        String?       @default("Barbeiro")
-  image_url   String?
+  role        profile_status @default(barber)
   specialties String[] // TEXT[]
-  status      barber_status @default(active)
+  status      barber_status  @default(active)
   hire_date   DateTime?
-  created_at  DateTime      @default(now())
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updateAt    DateTime       @updatedAt() @map("updated_at")
 
   schedules    BarberSchedule[]
   appointments Appointment[]
@@ -81,7 +95,6 @@ model Service {
   price            Decimal
   duration_minutes Int
   description      String?
-  image_url        String?
   active           Boolean @default(true)
 
   appointments Appointment[]
@@ -109,10 +122,10 @@ model BarberSchedule {
 // APPOINTMENTS
 // -------------------------
 model Appointment {
-  id         String  @id @default(uuid())
-  service_id String?
-  barber_id  String?
-  user_id    String?
+  id         String @id @default(uuid())
+  service_id String
+  barber_id  String
+  user_id    String
 
   customer_name  String?
   customer_phone String?
@@ -120,9 +133,9 @@ model Appointment {
   date DateTime @db.Date
   time DateTime @db.Time
 
-  status     appointment_status @default(confirmed)
-  price      Decimal
-  created_at DateTime           @default(now())
+  status    appointment_status @default(confirmed)
+  price     Decimal
+  createdAt DateTime           @default(now()) @map("created_at")
 
   service Service? @relation(fields: [service_id], references: [id])
   barber  Barber?  @relation(fields: [barber_id], references: [id])
