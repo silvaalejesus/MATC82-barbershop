@@ -1,0 +1,48 @@
+services:
+  # BANCO DE ESCRITA (PRIMARY)
+  pg-primary:
+    image: bitnami/postgresql:latest
+    container_name: barbershop-primary
+    ports:
+      - '5432:5432'
+    volumes:
+      - pg_primary_data:/bitnami/postgresql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=admin123
+      - POSTGRESQL_USERNAME=barber_user
+      - POSTGRESQL_PASSWORD=barber_pass
+      - POSTGRESQL_DATABASE=barbershop_db
+      - POSTGRESQL_REPLICATION_MODE=master
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_pass
+    networks:
+      - barber-network
+
+  # BANCO DE LEITURA (REPLICA)
+  pg-replica:
+    image: bitnami/postgresql:latest
+    container_name: barbershop-replica
+    ports:
+      - '5433:5432'
+    depends_on:
+      - pg-primary
+    volumes:
+      - pg_replica_data:/bitnami/postgresql
+    environment:
+      - POSTGRESQL_POSTGRES_PASSWORD=admin123
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_pass
+      - POSTGRESQL_MASTER_HOST=pg-primary
+      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+    networks:
+      - barber-network
+
+networks:
+  barber-network:
+    driver: bridge
+
+volumes:
+  pg_primary_data:
+  pg_replica_data:

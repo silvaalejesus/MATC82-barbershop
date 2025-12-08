@@ -1,327 +1,98 @@
-````markdown
-# Documentação da API Backend para Barbearia
+<p align="center">
+  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+</p>
 
-Com base nos arquivos do frontend, principalmente as páginas em `app/`, o modal de agendamento (`components/booking-modal.tsx`) e as definições de dados em `lib/store.ts`, esta é a documentação para as rotas de backend necessárias.
+[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
+[circleci-url]: https://circleci.com/gh/nestjs/nest
 
-## Modelos de Dados Principais (Baseado em `lib/store.ts`)
+  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
+    <p align="center">
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
+<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
+<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
+<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
+<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
+  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
+    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
+  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+</p>
+  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
+  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-Antes das rotas, aqui estão as estruturas de dados principais que o backend precisará gerenciar:
+## Description
 
-#### User (Usuário)
-```json
-{
-  "id": "string (ou uuid)",
-  "name": "string",
-  "email": "string (único)",
-  "phone": "string",
-  "password": "string (hashed)",
-  "role": "string (enum: 'client', 'admin', 'barber')"
-}
-````
+[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-#### Barber (Barbeiro)
+## Project setup
 
-```json
-{
-  "id": "string (ou uuid)",
-  "name": "string",
-  "email": "string",
-  "phone": "string",
-  "role": "string",
-  "image": "string (URL)",
-  "specialties": "string[] (array de strings)",
-  "status": "string (enum: 'active', 'inactive')",
-  "hireDate": "string (ISO 8601 Date)"
-}
+```bash
+$ npm install
 ```
 
-#### Service (Serviço)
+## Compile and run the project
 
-```json
-{
-  "id": "string (ou uuid)",
-  "name": "string",
-  "price": "string (ou number para melhor manipulação)",
-  "duration": "string (ou number em minutos)",
-  "description": "string",
-  "image": "string (URL)"
-}
+```bash
+# development
+$ npm run start
+
+# watch mode
+$ npm run start:dev
+
+# production mode
+$ npm run start:prod
 ```
 
-#### Appointment (Agendamento)
+## Run tests
 
-```json
-{
-  "id": "string (ou uuid)",
-  "serviceId": "string (foreign key para Service)",
-  "barberId": "string (foreign key para Barber)",
-  "userId": "string (foreign key para User, pode ser nulo)",
-  "customerName": "string (obrigatório se userId for nulo)",
-  "customerPhone": "string (obrigatório se userId for nulo)",
-  "date": "string (ISO 8601 Date, ex: \"2025-10-25\")",
-  "time": "string (ex: \"14:00\")",
-  "status": "string (enum: 'confirmed', 'completed', 'cancelled')",
-  "price": "string (ou number)"
-}
+```bash
+# unit tests
+$ npm run test
+
+# e2e tests
+$ npm run test:e2e
+
+# test coverage
+$ npm run test:cov
 ```
 
-#### BarberSchedule (Agenda do Barbeiro)
+## Deployment
 
-```json
-{
-  "id": "string (ou uuid)",
-  "barberId": "string (foreign key para Barber)",
-  "dayOfWeek": "number (0 = Domingo, 1 = Segunda, ...)",
-  "isAvailable": "boolean",
-  "startTime": "string (ex: \"09:00\")",
-  "endTime": "string (ex: \"18:00\")",
-  "breakStart": "string (opcional, ex: \"12:00\")",
-  "breakEnd": "string (opcional, ex: \"13:00\")"
-}
+When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+
+If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+
+```bash
+$ npm install -g @nestjs/mau
+$ mau deploy
 ```
 
------
+With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
 
-## Documentação das Rotas da API
+## Resources
 
-Abaixo estão as rotas de API necessárias para o frontend funcionar.
+Check out a few resources that may come in handy when working with NestJS:
 
-### 1\. Autenticação (`/api/auth`)
+- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
+- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
+- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
+- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
+- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
+- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
+- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
+- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
 
-Rotas para registro, login e gerenciamento de sessão.
+## Support
 
-#### `POST /api/auth/register`
+Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
 
-* **Descrição:** Registra um novo usuário (cliente).
-* **Autenticação:** Pública.
-* **Request Body:**
-  * `name`: `string`
-  * `email`: `string`
-  * `phone`: `string`
-  * `password`: `string`
-* **Success Response (201):**
-  * `user`: Objeto `User` (sem a senha).
-  * `token`: `string` (JWT para autenticação).
+## Stay in touch
 
-#### `POST /api/auth/login`
+- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
+- Website - [https://nestjs.com](https://nestjs.com/)
+- Twitter - [@nestframework](https://twitter.com/nestframework)
 
-* **Descrição:** Autentica um usuário e retorna um token.
-* **Autenticação:** Pública.
-* **Request Body:**
-  * `email`: `string`
-  * `password`: `string`
-* **Success Response (200):**
-  * `user`: Objeto `User` (sem a senha).
-  * `token`: `string` (JWT).
+## License
 
-#### `POST /api/auth/admin/login`
-
-* **Descrição:** Autentica um administrador ou barbeiro.
-* **Autenticação:** Pública.
-* **Request Body:**
-  * `email`: `string`
-  * `password`: `string`
-* **Success Response (200):**
-  * Verifica se `role` é 'admin' ou 'barber'.
-  * `user`: Objeto `User` (sem a senha).
-  * `token`: `string` (JWT).
-
-#### `GET /api/auth/me`
-
-* **Descrição:** Retorna o usuário autenticado com base no token (usado para verificar a sessão).
-* **Autenticação:** **Autenticada** (requer token JWT).
-* **Success Response (200):**
-  * `user`: Objeto `User` (sem a senha).
-
------
-
-### 2\. Usuários (`/api/users`)
-
-Rotas para gerenciamento de dados do usuário.
-
-#### `GET /api/users/me`
-
-* **Descrição:** Obtém os detalhes do perfil do usuário logado (para `app/profile/page.tsx`).
-* **Autenticação:** **Autenticada**.
-* **Success Response (200):**
-  * Objeto `User` (sem a senha).
-
-#### `PUT /api/users/me`
-
-* **Descrição:** Atualiza o perfil do usuário logado.
-* **Autenticação:** **Autenticada**.
-* **Request Body:**
-  * `name`: `string` (opcional)
-  * `phone`: `string` (opcional)
-  * `email`: `string` (opcional)
-* **Success Response (200):**
-  * Objeto `User` atualizado.
-
------
-
-### 3\. Serviços (`/api/services`)
-
-Rotas públicas para listar os serviços oferecidos.
-
-#### `GET /api/services`
-
-* **Descrição:** Lista todos os serviços disponíveis (usado em `app/services/page.tsx` e `components/booking-modal.tsx`).
-* **Autenticação:** Pública.
-* **Success Response (200):**
-  * `Service[]` (Array de objetos `Service`).
-
------
-
-### 4\. Barbeiros (`/api/barbers`)
-
-Rotas para listar barbeiros (público) e gerenciar (admin).
-
-#### `GET /api/barbers`
-
-* **Descrição:** Lista todos os barbeiros ativos (usado em `app/barbers/page.tsx` e `components/booking-modal.tsx`).
-* **Autenticação:** Pública.
-* **Query Params:**
-  * `status`: `string` (opcional, ex: 'active'. O admin pode querer ver 'inactive' também).
-* **Success Response (200):**
-  * `Barber[]` (Array de objetos `Barber`).
-
-#### `POST /api/barbers`
-
-* **Descrição:** Cria um novo barbeiro (usado em `app/admin/barbers/page.tsx`).
-* **Autenticação:** **Admin**.
-* **Request Body:**
-  * `name`: `string`
-  * `email`: `string`
-  * `phone`: `string`
-  * `role`: `string`
-  * `specialties`: `string[]`
-  * `status`: `string` (enum: 'active', 'inactive')
-  * `image`: `string` (URL)
-* **Success Response (201):**
-  * Objeto `Barber` criado.
-
-#### `PUT /api/barbers/:id`
-
-* **Descrição:** Atualiza um barbeiro existente.
-* **Autenticação:** **Admin**.
-* **Request Body:** (Campos iguais ao `POST`)
-* **Success Response (200):**
-  * Objeto `Barber` atualizado.
-
-#### `DELETE /api/barbers/:id`
-
-* **Descrição:** Remove um barbeiro.
-* **Autenticação:** **Admin**.
-* **Success Response (204):** Sem conteúdo.
-
------
-
-### 5\. Agendamentos (`/api/appointments`)
-
-Rotas para criar e visualizar agendamentos.
-
-#### `POST /api/appointments`
-
-* **Descrição:** Cria um novo agendamento (usado em `components/booking-modal.tsx`).
-* **Autenticação:** Pública (mas verifica se o usuário está logado via token).
-* **Request Body:**
-  * `serviceId`: `string`
-  * `barberId`: `string`
-  * `date`: `string` (ex: "2025-10-25")
-  * `time`: `string` (ex: "14:00")
-  * `name`: `string` (Obrigatório se o usuário não estiver logado)
-  * `phone`: `string` (Obrigatório se o usuário não estiver logado)
-* **Nota:** Se um token JWT for enviado, o backend deve associar o `userId` ao agendamento e ignorar `name` e `phone` do body, usando os dados do usuário autenticado.
-* **Success Response (201):**
-  * Objeto `Appointment` criado.
-
-#### `GET /api/appointments/me`
-
-* **Descrição:** Lista todos os agendamentos do usuário logado (para `app/appointments/page.tsx` e `app/profile/page.tsx`).
-* **Autenticação:** **Autenticada**.
-* **Query Params:**
-  * `status`: `string` (opcional, ex: 'confirmed', 'completed', 'cancelled')
-  * `limit`: `number` (opcional, para `app/profile/page.tsx`)
-* **Success Response (200):**
-  * `Appointment[]` (Array de objetos `Appointment`, populados com nomes de serviço e barbeiro).
-
-#### `PATCH /api/appointments/:id/cancel`
-
-* **Descrição:** Cancela um agendamento (usado em `app/appointments/page.tsx`).
-* **Autenticação:** **Autenticada** (O backend deve verificar se o usuário logado é o dono do agendamento).
-* **Success Response (200):**
-  * Objeto `Appointment` atualizado com `status: "cancelled"`.
-
------
-
-### 6\. Disponibilidade (`/api/availability`)
-
-Rota crucial para o modal de agendamento.
-
-#### `GET /api/availability`
-
-* **Descrição:** Retorna os horários disponíveis para um barbeiro em uma data específica.
-* **Autenticação:** Pública.
-* **Query Params:**
-  * `barberId`: `string` (obrigatório)
-  * `date`: `string` (obrigatório, ex: "2025-10-25")
-* **Lógica do Backend:**
-    1. Buscar a `BarberSchedule` para o `barberId` e o dia da semana (`dayOfWeek`) correspondente à `date`.
-    2. Se não estiver disponível (`isAvailable: false`), retornar `[]`.
-    3. Gerar slots de tempo (ex: de 30 em 30 min) entre `startTime` e `endTime`.
-    4. Remover slots que caiam dentro do `breakStart` e `breakEnd`.
-    5. Buscar todos os `Appointments` para esse `barberId` e `date`.
-    6. Remover da lista de slots gerados todos os horários que já estão ocupados (considerar a duração do serviço, embora o front pareça usar slots fixos).
-* **Success Response (200):**
-  * `timeSlots`: `string[]` (Array de horários disponíveis, ex: ["09:00", "09:30", ...]).
-
------
-
-### 7\. Painel Admin (`/api/admin`)
-
-Rotas protegidas para o painel de administração.
-
-#### `GET /api/admin/dashboard`
-
-* **Descrição:** Agrega todos os dados para o dashboard (`app/admin/dashboard/page.tsx`).
-* **Autenticação:** **Admin**.
-* **Success Response (200):**
-  * `stats`: `{ totalAppointments: number, completedAppointments: number, cancelledAppointments: number, totalRevenue: number }`
-  * `monthlyData`: `[{ month: string, appointments: number, revenue: number }]`
-  * `statusData`: `[{ name: string, value: number, color: string }]`
-  * `topServices`: `[{ service: string, count: number }]`
-  * `barberPerformance`: `[{ barberName: string, completedCount: number }]`
-
-#### `GET /api/admin/schedules`
-
-* **Descrição:** Retorna as agendas de todos os barbeiros (`app/admin/schedule/page.tsx`).
-* **Autenticação:** **Admin**.
-* **Success Response (200):**
-  * `BarberSchedule[]` (Array de agendas, onde cada item contém o `barberId`, `barberName` e o array `schedule`).
-
-#### `PUT /api/admin/schedules/:barberId`
-
-* **Descrição:** Atualiza a agenda completa de um barbeiro.
-* **Autenticação:** **Admin**.
-* **Request Body:**
-  * `schedule`: `[ { dayOfWeek: number, isAvailable: boolean, startTime: string, endTime: string, breakStart?: string, breakEnd?: string } ]` (O array completo da agenda).
-* **Success Response (200):**
-  * Objeto `BarberSchedule` atualizado.
-
-#### `GET /api/admin/clients`
-
-* **Descrição:** Lista todos os clientes com estatísticas (`app/admin/clients/page.tsx`).
-* **Autenticação:** **Admin**.
-* **Query Params:**
-  * `search`: `string` (opcional, para filtrar por nome, email, telefone).
-* **Success Response (200):**
-  * `Client[]` (Array de objetos `Client`. O backend deve computar os dados estatísticos (`totalAppointments`, etc.) a partir dos `Users` com `role: 'client'` e seus `Appointments`).
-
-#### `GET /api/admin/appointments`
-
-* **Descrição:** Lista todos os agendamentos (usado em `app/admin/clients/page.tsx` na aba "Clientes Agendados").
-* **Autenticação:** **Admin**.
-* **Query Params:**
-  * `status`: `string` (opcional, ex: 'confirmed').
-* **Success Response (200):**
-  * `Appointment[]` (Array de objetos `Appointment`, populados com nomes).
+Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).

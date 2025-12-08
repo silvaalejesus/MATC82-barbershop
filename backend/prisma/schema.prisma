@@ -1,0 +1,147 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ========================================================
+// ENUMS
+// ========================================================
+enum appointment_status {
+  confirmed
+  completed
+  cancelled
+}
+
+enum profile_status {
+  custumer
+  barber
+  admin
+}
+
+enum barber_status {
+  active
+  inactive
+}
+
+// ========================================================
+// MODELS
+// ========================================================
+
+// -------------------------
+// USERS
+// -------------------------
+model User {
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  phone         String?
+  password_hash String
+  role          profile_status @default(custumer)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updateAt      DateTime       @updatedAt() @map("updated_at")
+
+  appointments Appointment[]
+}
+
+// -------------------------
+// ADMINS
+// -------------------------
+model Admin {
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  phone         String?
+  password_hash String
+  role          profile_status @default(admin)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updateAt      DateTime       @updatedAt() @map("updated_at")
+}
+
+// -------------------------
+// BARBERS
+// -------------------------
+model Barber {
+  id          String         @id @default(uuid())
+  name        String
+  email       String         @unique
+  phone       String?
+  role        profile_status @default(barber)
+  specialties String[] // TEXT[]
+  status      barber_status  @default(active)
+  hire_date   DateTime?
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updateAt    DateTime       @updatedAt() @map("updated_at")
+
+  schedules    BarberSchedule[]
+  appointments Appointment[]
+}
+
+// -------------------------
+// SERVICES
+// -------------------------
+model Service {
+  id               String  @id @default(uuid())
+  name             String
+  price            Decimal
+  duration_minutes Int
+  description      String?
+  active           Boolean @default(true)
+
+  appointments Appointment[]
+}
+
+// -------------------------
+// BARBER SCHEDULES
+// -------------------------
+model BarberSchedule {
+  id           String    @id @default(uuid())
+  barber_id    String
+  day_of_week  Int
+  is_available Boolean   @default(true)
+  start_time   DateTime  @db.Time
+  end_time     DateTime  @db.Time
+  break_start  DateTime? @db.Time
+  break_end    DateTime? @db.Time
+
+  barber Barber @relation(fields: [barber_id], references: [id], onDelete: Cascade)
+
+  @@unique([barber_id, day_of_week])
+}
+
+// -------------------------
+// APPOINTMENTS
+// -------------------------
+model Appointment {
+  id         String @id @default(uuid())
+  service_id String
+  barber_id  String
+  user_id    String
+
+  customer_name  String?
+  customer_phone String?
+
+  date DateTime @db.Date
+  time DateTime @db.Time
+
+  status    appointment_status @default(confirmed)
+  price     Decimal
+  createdAt DateTime           @default(now()) @map("created_at")
+
+  service Service? @relation(fields: [service_id], references: [id])
+  barber  Barber?  @relation(fields: [barber_id], references: [id])
+  user    User?    @relation(fields: [user_id], references: [id])
+
+  @@index([date])
+  @@index([barber_id])
+  @@index([user_id])
+}
