@@ -45,3 +45,4 @@ export class UpdateScheduleDto {
   @Type(() => ScheduleDayDto)
   schedule: ScheduleDayDto[];
 }
+

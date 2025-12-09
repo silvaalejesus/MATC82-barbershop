@@ -1,11 +1,10 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { Prisma } from 'generated/prisma/client';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 
 interface ScheduleDay {
   dayOfWeek: number;
   isAvailable: boolean;
-  startTime: string;
+  startTime: string; // Vem como string do JSON
   endTime: string;
   breakStart?: string;
   breakEnd?: string;
@@ -32,7 +31,6 @@ export class AdminService {
    * Agrega todos os dados para o dashboard
    */
   async getDashboardData() {
-    // Estatísticas gerais de agendamentos
     const totalAppointments = await this.prisma.appointment.count();
 
     const completedAppointments = await this.prisma.appointment.count({
@@ -43,7 +41,7 @@ export class AdminService {
       where: { status: 'cancelled' },
     });
 
-    // Calcula receita total (apenas agendamentos completados)
+    // Calcula receita total
     const completedAppts = await this.prisma.appointment.findMany({
       where: { status: 'completed' },
       include: { service: true },
@@ -54,7 +52,6 @@ export class AdminService {
       0,
     );
 
-    // Busca dados dos últimos 6 meses
     const monthlyData = await this.getMonthlyData();
 
     const confirmedCount = await this.prisma.appointment.count({
@@ -62,27 +59,12 @@ export class AdminService {
     });
 
     const statusData = [
-      {
-        name: 'Confirmados',
-        value: confirmedCount,
-        color: '#10b981',
-      },
-      {
-        name: 'Cancelados',
-        value: cancelledAppointments,
-        color: '#ef4444',
-      },
-      {
-        name: 'Completados',
-        value: completedAppointments,
-        color: '#3b82f6',
-      },
+      { name: 'Confirmados', value: confirmedCount, color: '#10b981' },
+      { name: 'Cancelados', value: cancelledAppointments, color: '#ef4444' },
+      { name: 'Completados', value: completedAppointments, color: '#3b82f6' },
     ];
 
-    // Top 5 serviços mais agendados
     const topServices = await this.getTopServices();
-
-    // Performance dos barbeiros
     const barberPerformance = await this.getBarberPerformance();
 
     return {
@@ -99,9 +81,6 @@ export class AdminService {
     };
   }
 
-  /**
-   * Calcula dados mensais dos últimos 6 meses
-   */
   private async getMonthlyData() {
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
@@ -116,7 +95,6 @@ export class AdminService {
       orderBy: { createdAt: 'asc' },
     });
 
-    // Agrupa por mês
     const monthlyMap = new Map<
       string,
       { appointments: number; revenue: number }
@@ -148,9 +126,6 @@ export class AdminService {
     }));
   }
 
-  /**
-   * Retorna os 5 serviços mais agendados
-   */
   private async getTopServices() {
     const appointments = await this.prisma.appointment.findMany({
       include: { service: true },
@@ -169,22 +144,15 @@ export class AdminService {
       .slice(0, 5);
   }
 
-  /**
-   * Calcula a performance de cada barbeiro
-   */
   private async getBarberPerformance() {
     const barbers = await this.prisma.barber.findMany({
-      where: {
-        status: 'active',
-      },
+      where: { status: 'active' },
       include: {
         appointments: {
           where: { status: 'completed' },
         },
       },
-      orderBy: {
-        name: 'asc',
-      },
+      orderBy: { name: 'asc' },
     });
 
     return barbers
@@ -197,18 +165,15 @@ export class AdminService {
 
   /**
    * GET /api/admin/schedules
-   * Retorna as agendas de todos os barbeiros
    */
   async getAllSchedules() {
     const barbers = await this.prisma.barber.findMany({
       include: {
         schedules: {
-          orderBy: { day_of_week: 'asc' },
+          orderBy: { dayOfWeek: 'asc' }, // CORRIGIDO: dayOfWeek
         },
       },
-      orderBy: {
-        name: 'asc',
-      },
+      orderBy: { name: 'asc' },
     });
 
     return barbers.map((barber) => ({
@@ -219,22 +184,20 @@ export class AdminService {
       barberStatus: barber.status,
       schedule: barber.schedules.map((sched) => ({
         id: sched.id,
-        dayOfWeek: sched.day_of_week,
-        isAvailable: sched.is_available,
-        startTime: sched.start_time,
-        endTime: sched.end_time,
-        breakStart: sched.break_start,
-        breakEnd: sched.break_end,
+        dayOfWeek: sched.dayOfWeek, // CORRIGIDO
+        isAvailable: sched.isAvailable, // CORRIGIDO
+        startTime: sched.startTime, // CORRIGIDO
+        endTime: sched.endTime, // CORRIGIDO
+        breakStart: sched.breakStart, // CORRIGIDO
+        breakEnd: sched.breakEnd, // CORRIGIDO
       })),
     }));
   }
 
   /**
    * PUT /api/admin/schedules/:barberId
-   * Atualiza a agenda completa de um barbeiro
    */
   async updateBarberSchedule(barberId: string, schedule: ScheduleDay[]) {
-    // Verifica se o barbeiro existe
     const barber = await this.prisma.barber.findUnique({
       where: { id: barberId },
     });
@@ -243,46 +206,60 @@ export class AdminService {
       return null;
     }
 
-    // Remove todas as agendas antigas do barbeiro
+    // Remove agendas antigas
     await this.prisma.barberSchedule.deleteMany({
-      where: { barber_id: barberId },
+      where: { barberId: barberId }, // CORRIGIDO: barberId
     });
 
+    // Converter string de hora 'HH:MM' para Date object
+    // Assumindo data arbitrária pois o banco pede DateTime para Time column
+    const toDate = (timeStr?: string) => {
+      if (!timeStr) return null;
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      const d = new Date();
+      d.setHours(hours, minutes, 0, 0);
+      return d;
+    };
+
     // Cria as novas agendas
-    const createdSchedules = await Promise.all(
+    // Nota: O Prisma Client espera objetos Date para colunas DateTime/@db.Time
+    await Promise.all(
       schedule.map((day) =>
         this.prisma.barberSchedule.create({
           data: {
-            barber_id: barberId,
-            day_of_week: day.dayOfWeek,
-            is_available: day.isAvailable,
-            start_time: day.startTime,
-            end_time: day.endTime,
-            break_start: day.breakStart || null,
-            break_end: day.breakEnd || null,
+            barberId: barberId, // CORRIGIDO
+            dayOfWeek: day.dayOfWeek, // CORRIGIDO
+            isAvailable: day.isAvailable, // CORRIGIDO
+            startTime: toDate(day.startTime)!,
+            endTime: toDate(day.endTime)!,
+            breakStart: toDate(day.breakStart),
+            breakEnd: toDate(day.breakEnd),
           },
         }),
       ),
     );
 
+    // Retorna a agenda atualizada (busca do banco para garantir formato)
+    const updatedSchedules = await this.prisma.barberSchedule.findMany({
+      where: { barberId },
+      orderBy: { dayOfWeek: 'asc' },
+    });
+
     return {
       barberId: barber.id,
       barberName: barber.name,
-      barberEmail: barber.email,
-      schedule: createdSchedules,
+      schedule: updatedSchedules,
     };
   }
 
   /**
    * GET /api/admin/clients
-   * Lista todos os clientes com suas estatísticas
    */
   async getAllClients(search?: string) {
-    const where: Prisma.UserWhereInput = {
-      role: 'custumer', // Filtra apenas usuários comuns (não admin/barber)
+    const where: any = {
+      role: 'client', // CORRIGIDO: 'custumer' -> 'client'
     };
 
-    // Adiciona filtro de busca se fornecido
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
@@ -295,22 +272,17 @@ export class AdminService {
       where,
       include: {
         appointments: {
-          include: {
-            service: true,
-          },
+          include: { service: true },
         },
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    // Computa estatísticas para cada cliente
     return users.map((user) => {
       const totalAppointments = user.appointments.length;
-
       const completedAppointments = user.appointments.filter(
         (apt) => apt.status === 'completed',
       ).length;
-
       const cancelledAppointments = user.appointments.filter(
         (apt) => apt.status === 'cancelled',
       ).length;
@@ -319,7 +291,6 @@ export class AdminService {
         .filter((apt) => apt.status === 'completed')
         .reduce((sum, apt) => sum + Number(apt.service.price), 0);
 
-      // Pega o último agendamento
       const sortedAppointments = [...user.appointments].sort(
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
       );
@@ -343,65 +314,40 @@ export class AdminService {
 
   /**
    * GET /api/admin/appointments
-   * Lista todos os agendamentos com filtros opcionais
    */
   async getAllAppointments(status?: string) {
-    const where: Prisma.AppointmentWhereInput = {};
+    const where: any = {};
 
-    // Adiciona filtro de status se fornecido
     if (status) {
-      where.status = status as any;
+      where.status = status;
     }
 
     const appointments = await this.prisma.appointment.findMany({
       where,
       include: {
-        service: {
-          select: {
-            id: true,
-            name: true,
-            price: true,
-          },
-        },
-        barber: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-            specialties: true,
-          },
-        },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-          },
-        },
+        service: true,
+        barber: true,
+        user: true,
       },
       orderBy: [{ date: 'desc' }, { time: 'desc' }],
     });
 
-    // Formata a resposta incluindo dados do cliente
     return appointments.map((apt) => ({
       id: apt.id,
-      serviceId: apt.service_id,
-      barberId: apt.barber_id,
-      userId: apt.user_id,
+      serviceId: apt.serviceId, // CORRIGIDO
+      barberId: apt.barberId, // CORRIGIDO
+      userId: apt.userId, // CORRIGIDO
       date: apt.date,
       time: apt.time,
       status: apt.status,
       createdAt: apt.createdAt,
-      // Dados do serviço
       service: apt.service,
-      // Dados do barbeiro
       barber: apt.barber,
-      // Dados do cliente (pode ser do user ou campos diretos)
-      clientName: apt.user?.name || apt.name,
+      // User pode ser nulo se agendamento foi feito sem cadastro (dependendo da regra)
+      // Se seu SQL permite user_id nulo, apt.user pode ser null.
+      clientName: apt.user?.name || apt.customerName, // CORRIGIDO: customerName
       clientEmail: apt.user?.email || null,
-      clientPhone: apt.user?.phone || apt.phone,
+      clientPhone: apt.user?.phone || apt.customerPhone, // CORRIGIDO: customerPhone
       clientId: apt.user?.id || null,
     }));
   }

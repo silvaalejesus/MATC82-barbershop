@@ -1,147 +1,122 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider   = "prisma-client"
+  output     = "./generated"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// ========================================================
-// ENUMS
-// ========================================================
-enum appointment_status {
+// Enums mapeados para o banco de dados
+enum UserRole {
+  client
+  admin
+  barber
+
+  @@map("user_role")
+}
+
+enum AppointmentStatus {
   confirmed
   completed
   cancelled
+
+  @@map("appointment_status")
 }
 
-enum profile_status {
-  custumer
-  barber
-  admin
-}
-
-enum barber_status {
+enum BarberStatus {
   active
   inactive
+
+  @@map("barber_status")
 }
 
-// ========================================================
-// MODELS
-// ========================================================
-
-// -------------------------
-// USERS
-// -------------------------
 model User {
-  id            String         @id @default(uuid())
-  name          String
-  email         String         @unique
-  phone         String?
-  password_hash String
-  role          profile_status @default(custumer)
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updateAt      DateTime       @updatedAt() @map("updated_at")
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(client)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   appointments Appointment[]
+
+  @@map("users")
 }
 
-// -------------------------
-// ADMINS
-// -------------------------
-model Admin {
-  id            String         @id @default(uuid())
-  name          String
-  email         String         @unique
-  phone         String?
-  password_hash String
-  role          profile_status @default(admin)
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updateAt      DateTime       @updatedAt() @map("updated_at")
-}
+// Removemos o model Admin pois o SQL usa a tabela users para todos
 
-// -------------------------
-// BARBERS
-// -------------------------
 model Barber {
-  id          String         @id @default(uuid())
+  id          String       @id @default(uuid())
   name        String
-  email       String         @unique
+  email       String       @unique
   phone       String?
-  role        profile_status @default(barber)
-  specialties String[] // TEXT[]
-  status      barber_status  @default(active)
-  hire_date   DateTime?
-  createdAt   DateTime       @default(now()) @map("created_at")
-  updateAt    DateTime       @updatedAt() @map("updated_at")
+  role        String       @default("Barbeiro")
+  specialties String[]
+  status      BarberStatus @default(active)
+  hireDate    DateTime?    @map("hire_date")
+  imageUrl    String?      @map("image_url") // Adicionado conforme init.sql
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at") // Adicionado default para evitar erro
 
   schedules    BarberSchedule[]
   appointments Appointment[]
+
+  @@map("barbers")
 }
 
-// -------------------------
-// SERVICES
-// -------------------------
 model Service {
-  id               String  @id @default(uuid())
-  name             String
-  price            Decimal
-  duration_minutes Int
-  description      String?
-  active           Boolean @default(true)
+  id              String  @id @default(uuid())
+  name            String
+  price           Decimal @db.Decimal(10, 2)
+  durationMinutes Int     @map("duration_minutes")
+  description     String?
+  imageUrl        String? @map("image_url")
+  active          Boolean @default(true)
 
   appointments Appointment[]
+
+  @@map("services")
 }
 
-// -------------------------
-// BARBER SCHEDULES
-// -------------------------
 model BarberSchedule {
-  id           String    @id @default(uuid())
-  barber_id    String
-  day_of_week  Int
-  is_available Boolean   @default(true)
-  start_time   DateTime  @db.Time
-  end_time     DateTime  @db.Time
-  break_start  DateTime? @db.Time
-  break_end    DateTime? @db.Time
+  id          String    @id @default(uuid())
+  barberId    String    @map("barber_id")
+  dayOfWeek   Int       @map("day_of_week")
+  isAvailable Boolean   @default(true) @map("is_available")
+  startTime   DateTime  @map("start_time") @db.Time
+  endTime     DateTime  @map("end_time") @db.Time
+  breakStart  DateTime? @map("break_start") @db.Time
+  breakEnd    DateTime? @map("break_end") @db.Time
 
-  barber Barber @relation(fields: [barber_id], references: [id], onDelete: Cascade)
+  barber Barber @relation(fields: [barberId], references: [id], onDelete: Cascade)
 
-  @@unique([barber_id, day_of_week])
+  @@unique([barberId, dayOfWeek])
+  @@map("barber_schedules")
 }
 
-// -------------------------
-// APPOINTMENTS
-// -------------------------
 model Appointment {
-  id         String @id @default(uuid())
-  service_id String
-  barber_id  String
-  user_id    String
+  id            String            @id @default(uuid())
+  serviceId     String            @map("service_id")
+  barberId      String            @map("barber_id")
+  userId        String?           @map("user_id") // Pode ser nulo no SQL
+  customerName  String?           @map("customer_name")
+  customerPhone String?           @map("customer_phone")
+  date          DateTime          @db.Date
+  time          DateTime          @db.Time
+  status        AppointmentStatus @default(confirmed)
+  price         Decimal           @db.Decimal(10, 2)
+  createdAt     DateTime          @default(now()) @map("created_at")
 
-  customer_name  String?
-  customer_phone String?
+  service Service @relation(fields: [serviceId], references: [id])
+  barber  Barber  @relation(fields: [barberId], references: [id])
+  user    User?   @relation(fields: [userId], references: [id])
 
-  date DateTime @db.Date
-  time DateTime @db.Time
-
-  status    appointment_status @default(confirmed)
-  price     Decimal
-  createdAt DateTime           @default(now()) @map("created_at")
-
-  service Service? @relation(fields: [service_id], references: [id])
-  barber  Barber?  @relation(fields: [barber_id], references: [id])
-  user    User?    @relation(fields: [user_id], references: [id])
-
-  @@index([date])
-  @@index([barber_id])
-  @@index([user_id])
+  @@index([date], map: "idx_appointments_date")
+  @@index([barberId], map: "idx_appointments_barber")
+  @@index([userId], map: "idx_appointments_user")
+  @@map("appointments")
 }

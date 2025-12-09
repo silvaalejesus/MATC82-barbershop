@@ -4,7 +4,7 @@ services:
     image: bitnami/postgresql:latest
     container_name: barbershop-primary
     ports:
-      - '5432:5432'
+      - '5434:5432'
     volumes:
       - pg_primary_data:/bitnami/postgresql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql

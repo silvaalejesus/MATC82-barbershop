@@ -28,7 +28,7 @@ export class AppointmentsService {
     // Verifica se o horário está disponível
     const existingAppointment = await this.prisma.appointment.findFirst({
       where: {
-        barber_id: createAppointmentDto.barberId,
+        barberId: createAppointmentDto.barberId,
         date: createAppointmentDto.date,
         time: createAppointmentDto.time,
         status: {
@@ -105,7 +105,7 @@ export class AppointmentsService {
     const appointment = await this.prisma.appointment.findFirst({
       where: {
         id,
-        user_id: userId,
+        userId: userId,
       },
     });
 
@@ -134,3 +134,4 @@ export class AppointmentsService {
     return updatedAppointment;
   }
 }
+

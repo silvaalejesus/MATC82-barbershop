@@ -7,3 +7,4 @@ import { AvailabilityController } from './availability.controller';
   providers: [AvailabilityService],
 })
 export class AvailabilityModule {}
+

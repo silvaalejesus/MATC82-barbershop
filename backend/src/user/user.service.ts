@@ -1,8 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-
-import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/common/prisma/prisma.service';
-import { throwError } from 'rxjs';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -11,8 +9,10 @@ export class UsersService {
   async findById(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
+      // CORRIGIDO: O prisma 7 usa omit, mas verifique se seu preview feature está ativo.
+      // Se der erro no omit, use select explícito. Mas assumindo Prisma 7:
       omit: {
-        password_hash: true,
+        passwordHash: true, // CORRIGIDO: passwordHash
       },
     });
 
@@ -25,9 +25,7 @@ export class UsersService {
     });
 
     if (!user) {
-      if (!user) {
-        throw new NotFoundException('User com esse ID não encontrado');
-      }
+      throw new NotFoundException('User com esse ID não encontrado');
     }
 
     const updatedUser = await this.prisma.user.update({
@@ -38,7 +36,7 @@ export class UsersService {
         ...(updateUserDto.phone && { phone: updateUserDto.phone }),
       },
       omit: {
-        password_hash: true,
+        passwordHash: true, // CORRIGIDO: passwordHash
       },
     });
 

@@ -19,22 +19,24 @@ export class AvailabilityService {
 
     const schedule = await this.prisma.barberSchedule.findFirst({
       where: {
-        barber_id: barberId,
-        day_of_week: dayOfWeek,
+        barberId: barberId, // CORRIGIDO
+        dayOfWeek: dayOfWeek, // CORRIGIDO
       },
     });
 
-    if (!schedule || !schedule.is_available) {
+    // CORRIGIDO: isAvailable
+    if (!schedule || !schedule.isAvailable) {
       return [];
     }
 
-    const startTime = this.formatTime(schedule.start_time);
-    const endTime = this.formatTime(schedule.end_time);
-    const breakStart = schedule.break_start
-      ? this.formatTime(schedule.break_start)
+    // CORRIGIDO: startTime, endTime, breakStart, breakEnd
+    const startTime = this.formatTime(schedule.startTime);
+    const endTime = this.formatTime(schedule.endTime);
+    const breakStart = schedule.breakStart
+      ? this.formatTime(schedule.breakStart)
       : null;
-    const breakEnd = schedule.break_end
-      ? this.formatTime(schedule.break_end)
+    const breakEnd = schedule.breakEnd
+      ? this.formatTime(schedule.breakEnd)
       : null;
 
     const allSlots = this.generateTimeSlots(
@@ -51,7 +53,7 @@ export class AvailabilityService {
 
     const existingAppointments = await this.prisma.appointment.findMany({
       where: {
-        barber_id: barberId,
+        barberId: barberId, // CORRIGIDO
         date: searchDate,
         status: {
           in: ['confirmed'],
@@ -77,7 +79,7 @@ export class AvailabilityService {
     return date.toLocaleTimeString('pt-BR', {
       hour: '2-digit',
       minute: '2-digit',
-      timeZone: 'UTC', // Usar UTC para evitar problemas de fuso horário
+      timeZone: 'UTC',
     });
   }
 
