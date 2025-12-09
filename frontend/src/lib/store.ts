@@ -34,44 +34,8 @@ export interface Barber {
   status: "active" | "inactive"
   hireDate: string
 }
-
-export const barbersData: Barber[] = [
-  {
-    id: "carlos",
-    name: "Carlos Silva",
-    role: "Barbeiro Master",
-    image: "/professional-barber-portrait-male.jpg",
-    specialties: ["Corte de Cabelo", "Barba", "Combo Premium"],
-    email: "carlos@barber.com",
-    phone: "(11) 98765-4321",
-    status: "active",
-    hireDate: "2020-01-15",
-  },
-  {
-    id: "joao",
-    name: "João Santos",
-    role: "Especialista em Barba",
-    image: "/barber-specialist-portrait-male.jpg",
-    specialties: ["Barba", "Bigode", "Sobrancelha"],
-    email: "joao@barber.com",
-    phone: "(11) 98765-4322",
-    status: "active",
-    hireDate: "2021-03-20",
-  },
-  {
-    id: "pedro",
-    name: "Pedro Costa",
-    role: "Barbeiro Sênior",
-    image: "/senior-barber-portrait-male.jpg",
-    specialties: ["Corte de Cabelo", "Combo Completo", "Combo Premium"],
-    email: "pedro@barber.com",
-    phone: "(11) 98765-4323",
-    status: "active",
-    hireDate: "2019-06-10",
-  },
-]
-
-export const barbersAtom = atom<Barber[]>(barbersData)
+export const servicesAtom = atom<Service[]>([]); // Inicia vazio
+export const barbersAtom = atom<Barber[]>([])
 
 export interface Service {
   id: string
@@ -80,14 +44,7 @@ export interface Service {
   duration: string
 }
 
-export const servicesData: Service[] = [
-  { id: "corte-cabelo", name: "Corte de Cabelo", price: "R$ 45,00", duration: "45 min" },
-  { id: "barba", name: "Barba Completa", price: "R$ 35,00", duration: "30 min" },
-  { id: "bigode", name: "Bigode", price: "R$ 20,00", duration: "15 min" },
-  { id: "sobrancelha", name: "Sobrancelha", price: "R$ 25,00", duration: "20 min" },
-  { id: "combo-completo", name: "Corte + Barba", price: "R$ 70,00", duration: "75 min" },
-  { id: "combo-premium", name: "Combo Premium", price: "R$ 95,00", duration: "90 min" },
-]
+
 
 export interface Appointment {
   id: string

@@ -1,16 +1,28 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useAtom, useAtomValue } from "jotai"
-import { bookingModalOpenAtom, selectedServiceAtom, selectedBarberAtom, barbersData, servicesData } from "@/lib/store"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Calendar, Clock, User } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { fetcher } from "@/lib/api";
+import {
+  barbersAtom,
+  bookingModalOpenAtom,
+  selectedBarberAtom,
+  selectedServiceAtom,
+  servicesAtom,
+} from "@/lib/store";
+import { useAtom, useAtomValue } from "jotai";
+import { Calendar, Clock, User } from "lucide-react";
+import { useState } from "react";
 
 const timeSlots = [
   "09:00",
@@ -31,13 +43,13 @@ const timeSlots = [
   "17:30",
   "18:00",
   "18:30",
-]
+];
 
 export function BookingModal() {
-  const [open, setOpen] = useAtom(bookingModalOpenAtom)
-  const selectedService = useAtomValue(selectedServiceAtom)
-  const selectedBarber = useAtomValue(selectedBarberAtom)
-  const [step, setStep] = useState(1)
+  const [open, setOpen] = useAtom(bookingModalOpenAtom);
+  const selectedService = useAtomValue(selectedServiceAtom);
+  const selectedBarber = useAtomValue(selectedBarberAtom);
+  const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -45,46 +57,85 @@ export function BookingModal() {
     barber: selectedBarber || "",
     date: "",
     time: "",
-  })
+  });
+  // ADICIONADO: Ler os dados dos Atoms
+  const services = useAtomValue(servicesAtom);
+  const barbers = useAtomValue(barbersAtom);
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault()
+  //   console.log("Booking submitted:", formData)
+  //   alert("Agendamento realizado com sucesso!")
+  //   setOpen(false)
+  //   setStep(1)
+  //   setFormData({ name: "", phone: "", service: "", barber: "", date: "", time: "" })
+  // }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log("Booking submitted:", formData)
-    alert("Agendamento realizado com sucesso!")
-    setOpen(false)
-    setStep(1)
-    setFormData({ name: "", phone: "", service: "", barber: "", date: "", time: "" })
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const payload = {
+        serviceId: formData.service,
+        barberId: formData.barber,
+        date: new Date(`${formData.date}T${formData.time}`), // Formatar ISO-8601 corretamente
+        time: new Date(`${formData.date}T${formData.time}`),
+        // Se o utilizador não estiver logado, enviar nome/telefone
+        name: formData.name,
+        phone: formData.phone,
+      };
+
+      // Ajuste: A rota espera query param userId se for logado, ou campos no body se não for
+      await fetcher("/appointments", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      alert("Agendamento realizado com sucesso!");
+      setOpen(false);
+      // Limpar formulário...
+    } catch (error) {
+      alert("Erro ao realizar agendamento");
+    }
+  };
 
   const handleNext = () => {
     if (step === 1 && formData.service && formData.barber) {
-      setStep(2)
+      setStep(2);
     } else if (step === 2 && formData.date && formData.time) {
-      setStep(3)
+      setStep(3);
     }
-  }
+  };
 
   const handleBack = () => {
-    if (step > 1) setStep(step - 1)
-  }
+    if (step > 1) setStep(step - 1);
+  };
 
-  const selectedServiceData = servicesData.find((s) => s.id === formData.service)
-  const selectedBarberData = barbersData.find((b) => b.id === formData.barber)
+  const selectedServiceData = services.find((s) => s.id === formData.service);
+  const selectedBarberData = barbers.find((b) => b.id === formData.barber);
 
   return (
     <Dialog
       open={open}
       onOpenChange={(isOpen) => {
-        setOpen(isOpen)
+        setOpen(isOpen);
         if (!isOpen) {
-          setStep(1)
-          setFormData({ name: "", phone: "", service: "", barber: "", date: "", time: "" })
+          setStep(1);
+          setFormData({
+            name: "",
+            phone: "",
+            service: "",
+            barber: "",
+            date: "",
+            time: "",
+          });
         }
       }}
     >
       <DialogContent className="sm:max-w-2xl bg-card border-border max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-foreground">Agendar Horário - Etapa {step} de 3</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-foreground">
+            Agendar Horário - Etapa {step} de 3
+          </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -92,24 +143,37 @@ export function BookingModal() {
           {step === 1 && (
             <div className="space-y-6">
               <div className="space-y-3">
-                <Label className="text-foreground text-lg font-semibold">Escolha o Serviço</Label>
+                <Label className="text-foreground text-lg font-semibold">
+                  Escolha o Serviço
+                </Label>
                 <RadioGroup
                   value={formData.service}
-                  onValueChange={(value) => setFormData({ ...formData, service: value })}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, service: value })
+                  }
                 >
                   <div className="grid gap-3">
-                    {servicesData.map((service) => (
-                      <div key={service.id} className="flex items-center space-x-2">
+                    {services.map((service) => (
+                      <div
+                        key={service.id}
+                        className="flex items-center space-x-2"
+                      >
                         <RadioGroupItem value={service.id} id={service.id} />
                         <Label
                           htmlFor={service.id}
                           className="flex-1 flex items-center justify-between cursor-pointer p-3 border border-border rounded-lg hover:bg-accent"
                         >
                           <div>
-                            <p className="font-semibold text-foreground">{service.name}</p>
-                            <p className="text-sm text-muted-foreground">{service.duration}</p>
+                            <p className="font-semibold text-foreground">
+                              {service.name}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {service.duration}
+                            </p>
                           </div>
-                          <span className="font-bold text-primary">{service.price}</span>
+                          <span className="font-bold text-primary">
+                            {service.price}
+                          </span>
                         </Label>
                       </div>
                     ))}
@@ -118,14 +182,21 @@ export function BookingModal() {
               </div>
 
               <div className="space-y-3">
-                <Label className="text-foreground text-lg font-semibold">Escolha o Barbeiro</Label>
+                <Label className="text-foreground text-lg font-semibold">
+                  Escolha o Barbeiro
+                </Label>
                 <RadioGroup
                   value={formData.barber}
-                  onValueChange={(value) => setFormData({ ...formData, barber: value })}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, barber: value })
+                  }
                 >
                   <div className="grid gap-3">
-                    {barbersData.map((barber) => (
-                      <div key={barber.id} className="flex items-center space-x-2">
+                    {barbers.map((barber) => (
+                      <div
+                        key={barber.id}
+                        className="flex items-center space-x-2"
+                      >
                         <RadioGroupItem value={barber.id} id={barber.id} />
                         <Label
                           htmlFor={barber.id}
@@ -137,8 +208,12 @@ export function BookingModal() {
                             className="w-12 h-12 rounded-full object-cover"
                           />
                           <div className="flex-1">
-                            <p className="font-semibold text-foreground">{barber.name}</p>
-                            <p className="text-sm text-muted-foreground">{barber.role}</p>
+                            <p className="font-semibold text-foreground">
+                              {barber.name}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {barber.role}
+                            </p>
                           </div>
                         </Label>
                       </div>
@@ -164,7 +239,9 @@ export function BookingModal() {
               <div className="bg-accent/50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <User className="h-4 w-4 text-primary" />
-                  <span className="font-semibold text-foreground">{selectedBarberData?.name}</span>
+                  <span className="font-semibold text-foreground">
+                    {selectedBarberData?.name}
+                  </span>
                 </div>
                 <div className="text-sm text-muted-foreground">
                   {selectedServiceData?.name} - {selectedServiceData?.duration}
@@ -172,7 +249,10 @@ export function BookingModal() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="date" className="text-foreground flex items-center gap-2">
+                <Label
+                  htmlFor="date"
+                  className="text-foreground flex items-center gap-2"
+                >
                   <Calendar className="h-4 w-4" />
                   Selecione a Data
                 </Label>
@@ -180,7 +260,9 @@ export function BookingModal() {
                   id="date"
                   type="date"
                   value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, date: e.target.value })
+                  }
                   required
                   min={new Date().toISOString().split("T")[0]}
                   className="bg-background border-border text-foreground"
@@ -199,7 +281,11 @@ export function BookingModal() {
                       type="button"
                       variant={formData.time === slot ? "default" : "outline"}
                       onClick={() => setFormData({ ...formData, time: slot })}
-                      className={formData.time === slot ? "bg-primary text-primary-foreground" : "bg-transparent"}
+                      className={
+                        formData.time === slot
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-transparent"
+                      }
                     >
                       {slot}
                     </Button>
@@ -208,7 +294,12 @@ export function BookingModal() {
               </div>
 
               <div className="flex gap-3">
-                <Button type="button" onClick={handleBack} variant="outline" className="flex-1 bg-transparent">
+                <Button
+                  type="button"
+                  onClick={handleBack}
+                  variant="outline"
+                  className="flex-1 bg-transparent"
+                >
                   Voltar
                 </Button>
                 <Button
@@ -229,13 +320,18 @@ export function BookingModal() {
               <div className="bg-accent/50 p-4 rounded-lg space-y-2">
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4 text-primary" />
-                  <span className="font-semibold text-foreground">{selectedBarberData?.name}</span>
+                  <span className="font-semibold text-foreground">
+                    {selectedBarberData?.name}
+                  </span>
                 </div>
-                <div className="text-sm text-muted-foreground">{selectedServiceData?.name}</div>
+                <div className="text-sm text-muted-foreground">
+                  {selectedServiceData?.name}
+                </div>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    {formData.date && new Date(formData.date).toLocaleDateString("pt-BR")}
+                    {formData.date &&
+                      new Date(formData.date).toLocaleDateString("pt-BR")}
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
@@ -252,7 +348,9 @@ export function BookingModal() {
                   id="name"
                   placeholder="Seu nome"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   required
                   className="bg-background border-border text-foreground"
                 />
@@ -267,17 +365,27 @@ export function BookingModal() {
                   type="tel"
                   placeholder="(11) 99999-9999"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
                   required
                   className="bg-background border-border text-foreground"
                 />
               </div>
 
               <div className="flex gap-3">
-                <Button type="button" onClick={handleBack} variant="outline" className="flex-1 bg-transparent">
+                <Button
+                  type="button"
+                  onClick={handleBack}
+                  variant="outline"
+                  className="flex-1 bg-transparent"
+                >
                   Voltar
                 </Button>
-                <Button type="submit" className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90">
+                <Button
+                  type="submit"
+                  className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90"
+                >
                   Confirmar Agendamento
                 </Button>
               </div>
@@ -286,5 +394,5 @@ export function BookingModal() {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

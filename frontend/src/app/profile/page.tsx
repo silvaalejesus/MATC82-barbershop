@@ -12,15 +12,16 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { fetcher } from "@/lib/api";
 
 import { appointmentsAtom, isAuthenticatedAtom, userAtom } from "@/lib/store";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 
 import {
   ArrowRight,
@@ -36,15 +37,14 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 function ProfilePage() {
-function ProfilePage() {
   const router = useRouter();
 
   const isAuthenticated = useAtomValue(isAuthenticatedAtom);
-  const user = useAtomValue(userAtom);
+  // const user = useAtomValue(userAtom);
 
-  const setUser = useSetAtom(userAtom);
+  // const setUser = useSetAtom(userAtom);
 
-
+  const [user, setUser] = useAtom(userAtom);
   const appointments = useAtomValue(appointmentsAtom);
 
   const [open, setOpen] = useState(false);
@@ -89,11 +89,33 @@ function ProfilePage() {
     setOpen(false);
   }
 
- 
   function handleLogout() {
     setUser(null);
     router.push("/login");
   }
+
+  const handleUpdateProfile = async (formData: any) => {
+    // ⚠️ O back atual exige userId na query string
+    const userId = user?.id || "id-temporario-se-nao-logado";
+
+    try {
+      const updatedUser = await fetcher(`/users/me?userId=${userId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          name: formData.name,
+          phone: formData.phone,
+          // email: formData.email, // Geralmente email não se altera fácil, mas se o back permitir...
+        }),
+      });
+
+      // Atualiza o estado global do utilizador
+      setUser(updatedUser);
+      alert("Perfil atualizado!");
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao atualizar perfil.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background pt-24 pb-12">
@@ -209,7 +231,11 @@ function ProfilePage() {
                   <CardDescription>Sua atividade recente</CardDescription>
                 </div>
                 <Link href="/appointments">
-                  <Button variant="outline" size="sm" className="bg-transparent">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-transparent"
+                  >
                     Ver Todos
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -280,4 +306,4 @@ function ProfilePage() {
   );
 }
 
-export default ProfilePage
+export default ProfilePage;

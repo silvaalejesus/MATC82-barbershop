@@ -1,13 +1,14 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState } from "react"
-import { useAtom } from "jotai"
-import { barbersAtom, type Barber } from "@/lib/store"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -15,17 +16,27 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Plus, Pencil, Trash2, Mail, Phone } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import Image from "next/image"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { fetcher } from "@/lib/api";
+import { barbersAtom, type Barber } from "@/lib/store";
+import { useAtomValue, useSetAtom } from "jotai";
+import { Mail, Pencil, Phone, Plus, Trash2 } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 
 export default function BarbersManagementPage() {
-  const [barbers, setBarbers] = useAtom(barbersAtom)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [editingBarber, setEditingBarber] = useState<Barber | null>(null)
+  // const [barbers, setBarbers] = useAtom(barbersAtom);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingBarber, setEditingBarber] = useState<Barber | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -33,11 +44,13 @@ export default function BarbersManagementPage() {
     role: "",
     specialties: "",
     status: "active" as "active" | "inactive",
-  })
+  });
+  const setBarbers = useSetAtom(barbersAtom);
+  const barbers = useAtomValue(barbersAtom);
 
   const handleOpenDialog = (barber?: Barber) => {
     if (barber) {
-      setEditingBarber(barber)
+      setEditingBarber(barber);
       setFormData({
         name: barber.name,
         email: barber.email,
@@ -45,9 +58,9 @@ export default function BarbersManagementPage() {
         role: barber.role,
         specialties: barber.specialties.join(", "),
         status: barber.status,
-      })
+      });
     } else {
-      setEditingBarber(null)
+      setEditingBarber(null);
       setFormData({
         name: "",
         email: "",
@@ -55,64 +68,127 @@ export default function BarbersManagementPage() {
         role: "",
         specialties: "",
         status: "active",
-      })
+      });
     }
-    setIsDialogOpen(true)
-  }
+    setIsDialogOpen(true);
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
 
-    const specialtiesArray = formData.specialties.split(",").map((s) => s.trim())
+  //   const specialtiesArray = formData.specialties
+  //     .split(",")
+  //     .map((s) => s.trim());
 
-    if (editingBarber) {
-      // Update existing barber
-      setBarbers(
-        barbers.map((b) =>
-          b.id === editingBarber.id
-            ? {
-                ...b,
-                name: formData.name,
-                email: formData.email,
-                phone: formData.phone,
-                role: formData.role,
-                specialties: specialtiesArray,
-                status: formData.status,
-              }
-            : b,
-        ),
-      )
-    } else {
-      // Add new barber
-      const newBarber: Barber = {
-        id: `barber-${Date.now()}`,
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        role: formData.role,
-        specialties: specialtiesArray,
-        status: formData.status,
-        image: "/professional-barber-portrait-male.jpg",
-        hireDate: new Date().toISOString().split("T")[0],
-      }
-      setBarbers([...barbers, newBarber])
-    }
+  //   if (editingBarber) {
+  //     // Update existing barber
+  //     setBarbers(
+  //       barbers.map((b) =>
+  //         b.id === editingBarber.id
+  //           ? {
+  //               ...b,
+  //               name: formData.name,
+  //               email: formData.email,
+  //               phone: formData.phone,
+  //               role: formData.role,
+  //               specialties: specialtiesArray,
+  //               status: formData.status,
+  //             }
+  //           : b
+  //       )
+  //     );
+  //   } else {
+  //     // Add new barber
+  //     const newBarber: Barber = {
+  //       id: `barber-${Date.now()}`,
+  //       name: formData.name,
+  //       email: formData.email,
+  //       phone: formData.phone,
+  //       role: formData.role,
+  //       specialties: specialtiesArray,
+  //       status: formData.status,
+  //       image: "/professional-barber-portrait-male.jpg",
+  //       hireDate: new Date().toISOString().split("T")[0],
+  //     };
+  //     setBarbers([...barbers, newBarber]);
+  //   }
 
-    setIsDialogOpen(false)
-  }
+  //   setIsDialogOpen(false);
+  // };
+
+  useEffect(() => {
+    fetcher("/barbers")
+      .then((data) => setBarbers(data))
+      .catch((e) => console.error("Erro ao carregar barbeiros:", e));
+  }, [setBarbers]);
 
   const handleDelete = (id: string) => {
     if (confirm("Tem certeza que deseja remover este barbeiro?")) {
-      setBarbers(barbers.filter((b) => b.id !== id))
+      setBarbers(barbers.filter((b) => b.id !== id));
     }
-  }
+  };
+
+  const handleCreateBarber = async (formData: any) => {
+    // ⚠️ ID TEMPORÁRIO: Em produção virá do contexto de login (Auth)
+    const adminId = "id-do-admin-aqui";
+
+    try {
+      const newBarber = await fetcher(`/barbers?adminId=${adminId}`, {
+        method: "POST",
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          specialties: formData.specialties, // Deve ser um array de strings
+          imageUrl: formData.image, // Verifique se o back espera 'imageUrl' ou 'image'
+        }),
+      });
+
+      // Atualizar a lista localmente para refletir a mudança sem recarregar
+      setBarbers((prev) => [...prev, newBarber]);
+      alert("Barbeiro criado com sucesso!");
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao criar barbeiro.");
+    }
+  };
+
+  const handleUpdateBarber = async (barberId: string, formData: any) => {
+    const adminId = "id-do-admin-aqui"; // Temporário
+
+    try {
+      const updatedBarber = await fetcher(
+        `/barbers/${barberId}?adminId=${adminId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({
+            name: formData.name,
+            phone: formData.phone,
+            specialties: formData.specialties,
+            status: formData.status, // 'active' ou 'inactive'
+          }),
+        }
+      );
+
+      // Atualizar o atom local
+      setBarbers((prev) =>
+        prev.map((b) => (b.id === barberId ? updatedBarber : b))
+      );
+      alert("Barbeiro atualizado com sucesso!");
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao atualizar barbeiro.");
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Gerenciamento de Barbeiros</h1>
-          <p className="text-muted-foreground">Cadastre e gerencie os profissionais da barbearia</p>
+          <p className="text-muted-foreground">
+            Cadastre e gerencie os profissionais da barbearia
+          </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -123,19 +199,25 @@ export default function BarbersManagementPage() {
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>{editingBarber ? "Editar Barbeiro" : "Novo Barbeiro"}</DialogTitle>
+              <DialogTitle>
+                {editingBarber ? "Editar Barbeiro" : "Novo Barbeiro"}
+              </DialogTitle>
               <DialogDescription>
-                {editingBarber ? "Atualize as informações do barbeiro" : "Cadastre um novo profissional"}
+                {editingBarber
+                  ? "Atualize as informações do barbeiro"
+                  : "Cadastre um novo profissional"}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleCreateBarber} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome Completo</Label>
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -145,7 +227,9 @@ export default function BarbersManagementPage() {
                     id="email"
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -156,7 +240,9 @@ export default function BarbersManagementPage() {
                   <Input
                     id="phone"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -165,18 +251,24 @@ export default function BarbersManagementPage() {
                   <Input
                     id="role"
                     value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, role: e.target.value })
+                    }
                     placeholder="Ex: Barbeiro Master"
                     required
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="specialties">Especialidades (separadas por vírgula)</Label>
+                <Label htmlFor="specialties">
+                  Especialidades (separadas por vírgula)
+                </Label>
                 <Input
                   id="specialties"
                   value={formData.specialties}
-                  onChange={(e) => setFormData({ ...formData, specialties: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, specialties: e.target.value })
+                  }
                   placeholder="Ex: Corte de Cabelo, Barba, Combo Premium"
                   required
                 />
@@ -185,7 +277,9 @@ export default function BarbersManagementPage() {
                 <Label htmlFor="status">Status</Label>
                 <Select
                   value={formData.status}
-                  onValueChange={(value: "active" | "inactive") => setFormData({ ...formData, status: value })}
+                  onValueChange={(value: "active" | "inactive") =>
+                    setFormData({ ...formData, status: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -197,10 +291,16 @@ export default function BarbersManagementPage() {
                 </Select>
               </div>
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                >
                   Cancelar
                 </Button>
-                <Button type="submit">{editingBarber ? "Atualizar" : "Cadastrar"}</Button>
+                <Button type="submit">
+                  {editingBarber ? "Atualizar" : "Cadastrar"}
+                </Button>
               </div>
             </form>
           </DialogContent>
@@ -214,14 +314,21 @@ export default function BarbersManagementPage() {
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
                   <div className="relative h-16 w-16 rounded-full overflow-hidden">
-                    <Image src={barber.image || "/placeholder.svg"} alt={barber.name} fill className="object-cover" />
+                    <Image
+                      src={barber.image || "/placeholder.svg"}
+                      alt={barber.name}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                   <div>
                     <CardTitle className="text-lg">{barber.name}</CardTitle>
                     <CardDescription>{barber.role}</CardDescription>
                   </div>
                 </div>
-                <Badge variant={barber.status === "active" ? "default" : "secondary"}>
+                <Badge
+                  variant={barber.status === "active" ? "default" : "secondary"}
+                >
                   {barber.status === "active" ? "Ativo" : "Inativo"}
                 </Badge>
               </div>
@@ -241,7 +348,11 @@ export default function BarbersManagementPage() {
                 <p className="text-sm font-medium mb-2">Especialidades:</p>
                 <div className="flex flex-wrap gap-1">
                   {barber.specialties.map((specialty) => (
-                    <Badge key={specialty} variant="outline" className="text-xs">
+                    <Badge
+                      key={specialty}
+                      variant="outline"
+                      className="text-xs"
+                    >
                       {specialty}
                     </Badge>
                   ))}
@@ -271,5 +382,5 @@ export default function BarbersManagementPage() {
         ))}
       </div>
     </div>
-  )
+  );
 }

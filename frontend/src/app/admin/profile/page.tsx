@@ -1,19 +1,27 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useAtomValue } from "jotai"
-import { userAtom } from "@/lib/store"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { User, Briefcase, Calendar } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { userAtom } from "@/lib/store";
+import { Briefcase, Calendar, User } from "lucide-react";
+import { useState } from "react";
+import { fetcher } from "@/lib/api";
+import { useAtom } from "jotai";
 
 export default function AdminProfilePage() {
-  const user = useAtomValue(userAtom)
+  // const user = useAtomValue(userAtom)
+  const [user, setUser] = useAtom(userAtom);
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -22,18 +30,43 @@ export default function AdminProfilePage() {
     bio: "Responsável pela gestão e operação da barbearia, incluindo gerenciamento de equipe, agendamentos e atendimento ao cliente.",
     hireDate: "2020-01-15",
     specialties: "Gestão, Atendimento ao Cliente, Administração",
-  })
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    alert("Perfil atualizado com sucesso!")
-  }
+    e.preventDefault();
+    alert("Perfil atualizado com sucesso!");
+  };
+
+  const handleUpdateProfile = async (formData: any) => {
+    // ⚠️ O back atual exige userId na query string
+    const userId = user?.id || "id-temporario-se-nao-logado";
+
+    try {
+      const updatedUser = await fetcher(`/users/me?userId=${userId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          name: formData.name,
+          phone: formData.phone,
+          // email: formData.email, // Geralmente email não se altera fácil, mas se o back permitir...
+        }),
+      });
+
+      // Atualiza o estado global do utilizador
+      setUser(updatedUser);
+      alert("Perfil atualizado!");
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao atualizar perfil.");
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Meu Perfil</h1>
-        <p className="text-muted-foreground">Gerencie suas informações pessoais e profissionais</p>
+        <p className="text-muted-foreground">
+          Gerencie suas informações pessoais e profissionais
+        </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -65,8 +98,12 @@ export default function AdminProfilePage() {
                 <Calendar className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Data de Contratação</p>
-                <p className="font-medium">{new Date(formData.hireDate).toLocaleDateString("pt-BR")}</p>
+                <p className="text-sm text-muted-foreground">
+                  Data de Contratação
+                </p>
+                <p className="font-medium">
+                  {new Date(formData.hireDate).toLocaleDateString("pt-BR")}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -75,7 +112,9 @@ export default function AdminProfilePage() {
         <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle>Dados Pessoais e Profissionais</CardTitle>
-            <CardDescription>Atualize suas informações de perfil</CardDescription>
+            <CardDescription>
+              Atualize suas informações de perfil
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -85,7 +124,9 @@ export default function AdminProfilePage() {
                   <Input
                     id="name"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -93,7 +134,9 @@ export default function AdminProfilePage() {
                   <Input
                     id="role"
                     value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, role: e.target.value })
+                    }
                   />
                 </div>
               </div>
@@ -105,7 +148,9 @@ export default function AdminProfilePage() {
                     id="email"
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -113,7 +158,9 @@ export default function AdminProfilePage() {
                   <Input
                     id="phone"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
                   />
                 </div>
               </div>
@@ -123,7 +170,9 @@ export default function AdminProfilePage() {
                 <Input
                   id="specialties"
                   value={formData.specialties}
-                  onChange={(e) => setFormData({ ...formData, specialties: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, specialties: e.target.value })
+                  }
                 />
               </div>
 
@@ -132,7 +181,9 @@ export default function AdminProfilePage() {
                 <Textarea
                   id="bio"
                   value={formData.bio}
-                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, bio: e.target.value })
+                  }
                   rows={4}
                 />
               </div>
@@ -143,7 +194,9 @@ export default function AdminProfilePage() {
                   id="hireDate"
                   type="date"
                   value={formData.hireDate}
-                  onChange={(e) => setFormData({ ...formData, hireDate: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, hireDate: e.target.value })
+                  }
                 />
               </div>
 
@@ -155,5 +208,5 @@ export default function AdminProfilePage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

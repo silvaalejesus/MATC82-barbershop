@@ -33,7 +33,7 @@ function BarbersPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {barbersData.map((barber) => (
+            {/* {barbersData.map((barber) => (
               <Card key={barber.id} className="bg-card border-border overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="relative h-96">
                   <img
@@ -81,7 +81,7 @@ function BarbersPage() {
                   </Button>
                 </CardContent>
               </Card>
-            ))}
+            ))} */}
           </div>
         </div>
       </div>
