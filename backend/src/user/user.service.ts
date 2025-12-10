@@ -42,4 +42,8 @@ export class UsersService {
 
     return updatedUser;
   }
+
+  getAll() {
+    return this.prisma.user.findMany({});
+  }
 }

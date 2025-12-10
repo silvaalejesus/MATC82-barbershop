@@ -78,6 +78,33 @@ export class AppointmentsService {
     return appointment;
   }
 
+  async findAll(date?: string) {
+    const where: any = {};
+
+    if (date) {
+      where.date = date;
+    }
+
+    return this.prisma.appointment.findMany({
+      where,
+      include: {
+        service: true,
+        barber: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+      },
+      orderBy: {
+        time: 'asc',
+      },
+    });
+  }
+
   async findByUser(userId: string, status?: string, limit?: number) {
     const where: any = {
       userId,

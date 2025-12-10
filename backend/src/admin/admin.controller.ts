@@ -49,6 +49,25 @@ export class AdminController {
   }
 
   /**
+   * GET /api/admin/dashboard/stats
+   * Retorna as estatísticas de faturamento e clientes
+   */
+  @Get('dashboard/stats')
+  async getStats(@Query('adminId') adminId: string) {
+    await this.verifyAdmin(adminId);
+
+    try {
+      const stats = await this.adminService.getStats();
+      return stats;
+    } catch (error) {
+      throw new HttpException(
+        'Erro ao buscar estatísticas',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
    * GET /api/admin/schedules
    * Lista as agendas de todos os barbeiros
    */
@@ -148,4 +167,3 @@ export class AdminController {
     }
   }
 }
-

@@ -16,6 +16,19 @@ import { AppointmentsService } from './appointment.service';
 export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
+  @Get()
+  async getAllAppointments(@Query('date') date?: string) {
+    try {
+      const appointments = await this.appointmentsService.findAll(date);
+      return appointments;
+    } catch (error) {
+      throw new HttpException(
+        'Erro ao buscar agendamentos',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Post()
   async createAppointment(
     @Query('userId') userId: string | undefined,

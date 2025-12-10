@@ -8,6 +8,7 @@ import { AppointmentModule } from './appointment/appointment.module';
 import { AvailabilityModule } from './availability/availability.module';
 import { ServicesModule } from './service/services.module';
 import { ConfigModule } from '@nestjs/config'; // <--- Importe isso
+import { AuthModule } from './auth/auth.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -16,6 +17,7 @@ import { ConfigModule } from '@nestjs/config'; // <--- Importe isso
     UsersModule,
     PrismaModule,
     ServicesModule,
+    AuthModule, // <--- Add AuthModule here
     // AdminModule,
     BarberModule,
     AppointmentModule,

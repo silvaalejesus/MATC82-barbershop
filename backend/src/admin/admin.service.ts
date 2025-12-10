@@ -52,6 +52,10 @@ export class AdminService {
       0,
     );
 
+    const totalClients = await this.prisma.user.count({
+      where: { role: 'client' },
+    });
+
     const monthlyData = await this.getMonthlyData();
 
     const confirmedCount = await this.prisma.appointment.count({
@@ -73,11 +77,33 @@ export class AdminService {
         completedAppointments,
         cancelledAppointments,
         totalRevenue: Number(totalRevenue.toFixed(2)),
+        totalClients,
       },
       monthlyData,
       statusData,
       topServices,
       barberPerformance,
+    };
+  }
+
+  async getStats() {
+    const totalClients = await this.prisma.user.count({
+      where: { role: 'client' },
+    });
+
+    const completedAppts = await this.prisma.appointment.findMany({
+      where: { status: 'completed' },
+      include: { service: true },
+    });
+
+    const totalRevenue = completedAppts.reduce(
+      (sum, apt) => sum + Number(apt.service.price),
+      0,
+    );
+
+    return {
+      totalClients,
+      totalRevenue: Number(totalRevenue.toFixed(2)),
     };
   }
 

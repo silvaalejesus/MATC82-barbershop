@@ -4,8 +4,6 @@ import {
   Put,
   Body,
   Query,
-  HttpException,
-  HttpStatus,
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
@@ -48,5 +46,10 @@ export class UsersController {
     }
 
     return updatedUser;
+  }
+
+  @Get()
+  async getAllUsers() {
+    return this.usersService.getAll();
   }
 }
