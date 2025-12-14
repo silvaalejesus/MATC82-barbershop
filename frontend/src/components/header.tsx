@@ -1,30 +1,34 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { useAtom, useAtomValue, useSetAtom } from "jotai"
-import { bookingModalOpenAtom, userAtom, isAuthenticatedAtom } from "@/lib/store"
-import Link from "next/link"
-import { User, LogOut, Calendar } from "lucide-react"
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useRouter } from "next/navigation"
+} from "@/components/ui/dropdown-menu";
+import {
+  bookingModalOpenAtom,
+  isAuthenticatedAtom,
+  userAtom,
+} from "@/lib/store";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { Calendar, LogOut, User } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export function Header() {
-  const router = useRouter()
-  const setBookingModalOpen = useSetAtom(bookingModalOpenAtom)
-  const isAuthenticated = useAtomValue(isAuthenticatedAtom)
-  const [user, setUser] = useAtom(userAtom)
+  const router = useRouter();
+  const setBookingModalOpen = useSetAtom(bookingModalOpenAtom);
+  const isAuthenticated = useAtomValue(isAuthenticatedAtom);
+  const [user, setUser] = useAtom(userAtom);
 
   const handleLogout = () => {
-    setUser(null)
-    router.push("/")
-  }
-
+    localStorage.removeItem("barber-user-id"); // Limpa a persistência
+    setUser(null); // Limpa o estado
+    router.push("/login");
+  };
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -36,19 +40,34 @@ export function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
-          <a href="/#inicio" className="text-foreground hover:text-primary transition-colors">
+          <a
+            href="/#inicio"
+            className="text-foreground hover:text-primary transition-colors"
+          >
             Início
           </a>
-          <Link href="/services" className="text-foreground hover:text-primary transition-colors">
+          <Link
+            href="/services"
+            className="text-foreground hover:text-primary transition-colors"
+          >
             Serviços
           </Link>
-          <Link href="/barbers" className="text-foreground hover:text-primary transition-colors">
+          <Link
+            href="/barbers"
+            className="text-foreground hover:text-primary transition-colors"
+          >
             Barbeiros
           </Link>
-          <Link href="/plans" className="text-foreground hover:text-primary transition-colors">
+          <Link
+            href="/plans"
+            className="text-foreground hover:text-primary transition-colors"
+          >
             Planos
           </Link>
-          <a href="/#contato" className="text-foreground hover:text-primary transition-colors">
+          <a
+            href="/#contato"
+            className="text-foreground hover:text-primary transition-colors"
+          >
             Contato
           </a>
         </nav>
@@ -57,13 +76,22 @@ export function Header() {
           {isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="rounded-full bg-transparent">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full bg-transparent"
+                >
                   <User className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-card border-border">
+              <DropdownMenuContent
+                align="end"
+                className="w-56 bg-card border-border"
+              >
                 <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium text-foreground">{user?.name}</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {user?.name}
+                  </p>
                   <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
                 <DropdownMenuSeparator />
@@ -80,7 +108,10 @@ export function Header() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="cursor-pointer text-destructive"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Sair
                 </DropdownMenuItem>
@@ -101,5 +132,5 @@ export function Header() {
         </div>
       </div>
     </header>
-  )
+  );
 }

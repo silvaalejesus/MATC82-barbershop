@@ -5,147 +5,122 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, userAtom } from "@/lib/store";
-import { Provider, useSetAtom } from "jotai";
+import { fetcher } from "@/lib/api";
+import { userAtom } from "@/lib/store"; // Importar o atom de usuário
+import { useSetAtom } from "jotai"; // Importar hook do Jotai
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type React from "react";
-import { useState } from "react";
+import { use, useState } from "react";
 
-function LoginPage() {
+export default function LoginPage() {
   const router = useRouter();
-  const setUser = useSetAtom(userAtom);
+  const setUser = useSetAtom(userAtom);// Hook para atualizar o usuário global
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+ const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
 
-    let authenticatedUser: User | null = null;
+    try {
+      // 1. Login no Backend
+      const response = await fetcher("/auth/login", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      })
 
-    if (
-      formData.email === "admin@barber.com" &&
-      formData.password === "admin123"
-    ) {
-      authenticatedUser = {
-        id: "admin-1",
-        name: "Administrador",
-        email: "admin@barber.com",
-        phone: "(11) 99999-9999",
-        role: "admin",
-      };
-    } else if (formData.email.includes("@") && formData.password) {
-      authenticatedUser = {
-        id: "client-" + Date.now(),
-        name: "João Carlos",
-        email: formData.email,
-        phone: "(11) 98888-8888",
-        role: "client",
-      };
-    }
+      // O backend retorna: { user: { id: "...", ... }, accessToken: "..." }
+      const user = response.user 
 
-    if (authenticatedUser) {
-      setUser(authenticatedUser);
+      // 2. Salvar sessão no navegador (ESSENCIAL PARA A PERSISTÊNCIA)
+      localStorage.setItem("barber-user-id", user.id)
 
-      if (
-        authenticatedUser.role === "admin" ||
-        authenticatedUser.role === "barber"
-      ) {
-        router.push("/admin/dashboard");
+      // 3. Atualizar estado global
+      setUser(user)
+
+      alert(`Bem-vindo, ${user.name}!`)
+      
+      // Redirecionamento
+      if (user.role === 'admin' || user.role === 'barber') {
+        router.push("/admin/dashboard")
       } else {
-        console.log("Redirecionando para o perfil do cliente");
-        router.push("/profile");
+        router.push("/") // Ou /profile
       }
-    } else {
-      setError("Email ou senha inválidos");
+
+    } catch (error) {
+      console.error(error)
+      alert("Credenciais inválidas")
+    } finally {
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md bg-card border-border">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-3xl font-bold text-center text-foreground">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center">
             Login
           </CardTitle>
-          <CardDescription className="text-center text-muted-foreground">
-            Acesse sua conta de cliente ou administrador
+          <CardDescription className="text-center">
+            Entre para gerenciar seus agendamentos
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-foreground">
-                Email
-              </Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="seu@email.com"
+                required
                 value={formData.email}
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
                 }
-                required
-                className="bg-background border-border text-foreground"
               />
             </div>
-
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-foreground">
-                Senha
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Senha</Label>
+                <Link href="#" className="text-sm text-primary hover:underline">
+                  Esqueceu a senha?
+                </Link>
+              </div>
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                required
                 value={formData.password}
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
                 }
-                required
-                className="bg-background border-border text-foreground"
               />
             </div>
-
-            {error && <p className="text-sm text-destructive">{error}</p>}
-
-            <Button
-              type="submit"
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              Entrar
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-4">
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Entrando..." : "Entrar"}
             </Button>
-
-            <div className="text-center text-sm text-muted-foreground">
+            <div className="text-sm text-center text-muted-foreground">
               Não tem uma conta?{" "}
               <Link href="/register" className="text-primary hover:underline">
                 Cadastre-se
               </Link>
             </div>
-
-            <div className="text-center">
-              <Link
-                href="/"
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                Voltar para o início
-              </Link>
-            </div>
-          </form>
-        </CardContent>
+          </CardFooter>
+        </form>
       </Card>
     </div>
   );
 }
-
-export default LoginPage

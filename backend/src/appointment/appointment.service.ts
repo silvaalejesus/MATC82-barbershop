@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { PrismaService } from 'src/common/prisma/prisma.service';
+import { CreateAppointmentDto } from './dto/create-appointment.dto';
 
 @Injectable()
 export class AppointmentsService {
@@ -25,55 +25,67 @@ export class AppointmentsService {
       throw new Error('Barbeiro não encontrado');
     }
 
+    const dateObject = new Date(`${createAppointmentDto.date}T00:00:00Z`);
+    const timeObject = new Date(`1970-01-01T${createAppointmentDto.time}:00Z`);
+    if (isNaN(dateObject.getTime()) || isNaN(timeObject.getTime())) {
+      throw new Error('Formato de data ou hora inválido');
+    }
+
     // Verifica se o horário está disponível
     const existingAppointment = await this.prisma.appointment.findFirst({
       where: {
         barberId: createAppointmentDto.barberId,
-        date: createAppointmentDto.date,
-        time: createAppointmentDto.time,
-        status: {
-          in: ['confirmed'],
-        },
+        date: dateObject, // Usar objeto Date
+        time: timeObject, // Usar objeto Date
+        status: { in: ['confirmed'] },
       },
     });
 
     if (existingAppointment) {
       throw new Error('Horário já está reservado');
     }
-
     // Cria o agendamento
     const appointmentData: any = {
       serviceId: createAppointmentDto.serviceId,
       barberId: createAppointmentDto.barberId,
-      date: createAppointmentDto.date,
-      time: createAppointmentDto.time,
-      status: 'pending',
+      date: dateObject, // <--- Aqui vai o Date, não a string
+      time: timeObject, // <--- Aqui vai o Date, não a string
+      status: 'confirmed', // Alterado para confirmed se não houver fluxo de pagamento
     };
 
-    // Se tem userId, associa ao usuário
     if (userId) {
       appointmentData.userId = userId;
     } else {
-      // Caso contrário, salva name e phone
-      appointmentData.name = createAppointmentDto.name;
-      appointmentData.phone = createAppointmentDto.phone;
+      appointmentData.customerName = createAppointmentDto.name; // Ajuste para bater com o schema (customerName)
+      appointmentData.customerPhone = createAppointmentDto.phone; // Ajuste para bater com o schema (customerPhone)
     }
+
+    appointmentData.price = service.price;
 
     const appointment = await this.prisma.appointment.create({
       data: appointmentData,
       include: {
         service: true,
         barber: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-          },
-        },
+        // user: true, // Remova ou ajuste o include se der erro de tipagem no retorno
       },
     });
+
+    // const appointment = await this.prisma.appointment.create({
+    //   data: appointmentData,
+    //   include: {
+    //     service: true,
+    //     barber: true,
+    //     // user: {
+    //     //   select: {
+    //     //     id: true,
+    //     //     name: true,
+    //     //     email: true,
+    //     //     phone: true,
+    //     //   },
+    //     // },
+    //   },
+    // });
 
     return appointment;
   }
@@ -161,4 +173,3 @@ export class AppointmentsService {
     return updatedAppointment;
   }
 }
-

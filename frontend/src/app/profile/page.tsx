@@ -20,7 +20,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { fetcher } from "@/lib/api";
 
-import { appointmentsAtom, isAuthenticatedAtom, userAtom } from "@/lib/store";
+// Importe o appointmentsAtom mas vamos usá-lo apenas para leitura ou atualizar localmente
+import { isAuthenticatedAtom, userAtom } from "@/lib/store";
 import { useAtom, useAtomValue } from "jotai";
 
 import {
@@ -38,14 +39,10 @@ import { useEffect, useState } from "react";
 
 function ProfilePage() {
   const router = useRouter();
-
   const isAuthenticated = useAtomValue(isAuthenticatedAtom);
-  // const user = useAtomValue(userAtom);
 
-  // const setUser = useSetAtom(userAtom);
-
-  const [user, setUser] = useAtom(userAtom);
-  const appointments = useAtomValue(appointmentsAtom);
+  // Estado local para agendamentos desta página
+  const [recentAppointments, setRecentAppointments] = useState<any[]>([]);
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
@@ -54,69 +51,80 @@ function ProfilePage() {
     phone: "",
   });
 
-  // Verifica login
+  const [user, setUser] = useAtom(userAtom);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 1. Verificar Autenticação
   useEffect(() => {
     if (!isAuthenticated) {
       router.push("/login");
     }
   }, [isAuthenticated, router]);
 
-  // Preenche o formulário com o usuário
+  // 2. Buscar Dados Reais (Usuário e Agendamentos)
   useEffect(() => {
-    if (user) {
-      setForm({
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-      });
+    if (user?.id) {
+      // a) Atualizar dados do usuário
+      fetcher(`/users/me?userId=${user.id}`)
+        .then((data) => {
+          setUser(data);
+          // Atualiza o form com os dados frescos
+          setForm({
+            name: data.name || "",
+            email: data.email || "",
+            phone: data.phone || "",
+          });
+        })
+        .catch((err) => console.error("Erro ao carregar perfil:", err));
+
+      // b) Buscar agendamentos para a lista de "Recentes"
+      // Usamos o limit=3 se o seu backend suportar, senão faz slice no front
+      fetcher(`/appointments/me?userId=${user.id}&limit=3`)
+        .then((data) => {
+          // Garante que é um array antes de setar
+          if (Array.isArray(data)) {
+            setRecentAppointments(data.slice(0, 3));
+          }
+        })
+        .catch((err) => console.error("Erro ao buscar agendamentos:", err));
     }
-  }, [user]);
+  }, [user?.id, setUser]); // Removemos 'form' das dependências para evitar loop
 
-  if (!isAuthenticated || !user) return null;
-
-  const recentAppointments = appointments.slice(0, 3);
-
-  // Salvar edição
-  function handleSave() {
-    setUser({
-      name: form.name ?? "",
-      email: form.email ?? "",
-      id: user.id ?? "",
-      role: user.role ?? "",
-      phone: form.phone ?? "",
-    });
-
-    setOpen(false);
-  }
-
-  function handleLogout() {
-    setUser(null);
-    router.push("/login");
-  }
-
-  const handleUpdateProfile = async (formData: any) => {
-    // ⚠️ O back atual exige userId na query string
-    const userId = user?.id || "id-temporario-se-nao-logado";
+  // 3. Função Unificada de Salvar (Conecta o botão 'Salvar' à API)
+  const handleSave = async () => {
+    if (!user?.id) return;
+    setIsLoading(true);
 
     try {
-      const updatedUser = await fetcher(`/users/me?userId=${userId}`, {
+      const updatedUser = await fetcher(`/users/me?userId=${user.id}`, {
         method: "PUT",
         body: JSON.stringify({
-          name: formData.name,
-          phone: formData.phone,
-          // email: formData.email, // Geralmente email não se altera fácil, mas se o back permitir...
+          name: form.name,
+          phone: form.phone,
+          // email: form.email // Geralmente email é imutável ou requer confirmação
         }),
       });
 
-      // Atualiza o estado global do utilizador
-      setUser(updatedUser);
-      alert("Perfil atualizado!");
+      setUser(updatedUser); // Atualiza estado global
+      setOpen(false); // Fecha modal
+      alert("Perfil atualizado com sucesso!");
     } catch (error) {
       console.error(error);
       alert("Erro ao atualizar perfil.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("barber-user-id"); // Limpa a persistência
+    setUser(null); // Limpa o estado
+    router.push("/login");
+  };
+
+  if (!isAuthenticated || !user) return null;
+
+  console.log("User Data:", user);
   return (
     <div className="min-h-screen bg-background pt-24 pb-12">
       <div className="container mx-auto px-4 max-w-6xl">
@@ -151,7 +159,9 @@ function ProfilePage() {
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-foreground">{user.phone}</span>
+                  <span className="text-foreground">
+                    {user.phone || "Sem telefone"}
+                  </span>
                 </div>
               </div>
 
@@ -186,9 +196,8 @@ function ProfilePage() {
                       <label className="text-sm font-medium">Email</label>
                       <Input
                         value={form.email}
-                        onChange={(e) =>
-                          setForm({ ...form, email: e.target.value })
-                        }
+                        disabled // Desabilita edição de email por segurança
+                        className="bg-muted"
                       />
                     </div>
 
@@ -204,7 +213,9 @@ function ProfilePage() {
                   </div>
 
                   <DialogFooter>
-                    <Button onClick={handleSave}>Salvar</Button>
+                    <Button onClick={handleSave} disabled={isLoading}>
+                      {isLoading ? "Salvando..." : "Salvar"}
+                    </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -245,58 +256,75 @@ function ProfilePage() {
 
             <CardContent>
               <div className="space-y-4">
-                {recentAppointments.map((appointment) => (
-                  <div
-                    key={appointment.id}
-                    className="border border-border rounded-lg p-4 hover:bg-accent/50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-2 flex-1">
-                        <div className="flex items-center gap-2">
-                          <Scissors className="h-4 w-4 text-primary" />
-                          <h3 className="font-semibold text-foreground">
-                            {appointment.service}
-                          </h3>
-                          <Badge
-                            variant={
-                              appointment.status === "confirmed"
-                                ? "default"
-                                : "secondary"
-                            }
-                            className="ml-2"
-                          >
-                            {appointment.status === "confirmed"
-                              ? "Confirmado"
-                              : "Concluído"}
-                          </Badge>
-                        </div>
+                {recentAppointments.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">
+                    Nenhum agendamento recente.
+                  </p>
+                ) : (
+                  recentAppointments.map((appointment) => (
+                    <div
+                      key={appointment.id}
+                      className="border border-border rounded-lg p-4 hover:bg-accent/50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-2 flex-1">
+                          <div className="flex items-center gap-2">
+                            <Scissors className="h-4 w-4 text-primary" />
+                            <h3 className="font-semibold text-foreground">
+                              {/* Validação caso venha nulo do back */}
+                              {appointment.service?.name || "Serviço"}
+                            </h3>
+                            <Badge
+                              variant={
+                                appointment.status === "confirmed"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                              className="ml-2"
+                            >
+                              {appointment.status === "confirmed"
+                                ? "Confirmado"
+                                : appointment.status === "cancelled"
+                                ? "Cancelado"
+                                : "Concluído"}
+                            </Badge>
+                          </div>
 
-                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            <span>{appointment.barber}</span>
+                          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <User className="h-3 w-3" />
+                              <span>
+                                {appointment.barber?.name || "Barbeiro"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              <span>
+                                {new Date(appointment.date).toLocaleDateString(
+                                  "pt-BR"
+                                )}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>
+                                {/* Ajuste para garantir formatação de hora */}
+                                {new Date(appointment.time).toLocaleTimeString(
+                                  [],
+                                  { hour: "2-digit", minute: "2-digit" }
+                                )}
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>
-                              {new Date(appointment.date).toLocaleDateString(
-                                "pt-BR"
-                              )}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            <span>{appointment.time}</span>
-                          </div>
-                        </div>
 
-                        <p className="text-sm font-semibold text-foreground">
-                          {appointment.price}
-                        </p>
+                          <p className="text-sm font-semibold text-foreground">
+                            R$ {appointment.price}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>

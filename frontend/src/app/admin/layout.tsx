@@ -34,8 +34,9 @@ export default function AdminLayout({
   }, [isAdmin, router]);
 
   const handleLogout = () => {
-    setUser(null);
-    router.push("/");
+    localStorage.removeItem("barber-user-id"); // Limpa a persistência
+    setUser(null); // Limpa o estado
+    router.push("/login");
   };
 
   if (!isAdmin) {
@@ -83,15 +84,14 @@ export default function AdminLayout({
             </Link>
           </nav>
           <div className="absolute bottom-4 left-3 right-3">
-          <Button
-  variant="ghost"
-  className="justify-start text-destructive"
-  onClick={handleLogout}
->
-  <LogOut className="mr-2 h-4 w-4" />
-  Sair
-</Button>
-
+            <Button
+              variant="ghost"
+              className="justify-start text-destructive"
+              onClick={handleLogout}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sair
+            </Button>
           </div>
         </aside>
 

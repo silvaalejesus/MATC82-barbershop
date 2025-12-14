@@ -1,16 +1,20 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
-import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
-// Mock bcrypt for now, as actual hashing is not required for mocked auth
+import { RegisterUserDto } from './dto/register-user.dto';
 // import * as bcrypt from 'bcrypt';
+
+// Se necessário, importe o Enum gerado pelo Prisma para garantir tipagem,
+// mas passar a string geralmente funciona se for válida.
+import { UserRole } from '../../prisma/generated/client'; // Ajuste o caminho conforme sua estrutura gerada
 
 @Injectable()
 export class AuthService {
   constructor(private prisma: PrismaService) {}
 
   async register(registerUserDto: RegisterUserDto) {
-    const { name, email, password, phone } = registerUserDto;
+    // 1. Extrair 'role' do DTO
+    const { name, email, password, phone, role } = registerUserDto;
 
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
@@ -20,9 +24,12 @@ export class AuthService {
       throw new HttpException('Email já cadastrado', HttpStatus.CONFLICT);
     }
 
-    // In a real application, you would hash the password here
     // const hashedPassword = await bcrypt.hash(password, 10);
-    const hashedPassword = password; // Mocking password hashing
+    const hashedPassword = password;
+
+    // 2. Usar a variável role ou o padrão 'client'
+    // Converter a string para o tipo UserRole do Prisma
+    const userRole = (role as UserRole) || UserRole.client;
 
     const newUser = await this.prisma.user.create({
       data: {
@@ -30,7 +37,7 @@ export class AuthService {
         email,
         passwordHash: hashedPassword,
         phone,
-        role: 'client',
+        role: userRole, // Usar o valor dinâmico
       },
       select: {
         id: true,

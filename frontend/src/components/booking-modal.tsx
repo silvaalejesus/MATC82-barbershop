@@ -19,10 +19,11 @@ import {
   selectedBarberAtom,
   selectedServiceAtom,
   servicesAtom,
+  userAtom,
 } from "@/lib/store";
 import { useAtom, useAtomValue } from "jotai";
 import { Calendar, Clock, User } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const timeSlots = [
   "09:00",
@@ -50,6 +51,7 @@ export function BookingModal() {
   const selectedService = useAtomValue(selectedServiceAtom);
   const selectedBarber = useAtomValue(selectedBarberAtom);
   const [step, setStep] = useState(1);
+  const user = useAtomValue(userAtom);
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -61,15 +63,16 @@ export function BookingModal() {
   // ADICIONADO: Ler os dados dos Atoms
   const services = useAtomValue(servicesAtom);
   const barbers = useAtomValue(barbersAtom);
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault()
-  //   console.log("Booking submitted:", formData)
-  //   alert("Agendamento realizado com sucesso!")
-  //   setOpen(false)
-  //   setStep(1)
-  //   setFormData({ name: "", phone: "", service: "", barber: "", date: "", time: "" })
-  // }
 
+  useEffect(() => {
+    if (open && user) {
+      setFormData((prev) => ({
+        ...prev,
+        name: user.name || "",
+        phone: user.phone || "",
+      }));
+    }
+  }, [open, user]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -77,15 +80,16 @@ export function BookingModal() {
       const payload = {
         serviceId: formData.service,
         barberId: formData.barber,
-        date: new Date(`${formData.date}T${formData.time}`), // Formatar ISO-8601 corretamente
-        time: new Date(`${formData.date}T${formData.time}`),
+        date: new Date(formData.date).toISOString().split('T')[0], // Formatar ISO-8601 corretamente
+        time: formData.time,
         // Se o utilizador não estiver logado, enviar nome/telefone
         name: formData.name,
         phone: formData.phone,
+        // userId: user?.id,
       };
 
       // Ajuste: A rota espera query param userId se for logado, ou campos no body se não for
-      await fetcher("/appointments", {
+      await fetcher(`/appointments?userId=${user?.id}`, {
         method: "POST",
         body: JSON.stringify(payload),
       });

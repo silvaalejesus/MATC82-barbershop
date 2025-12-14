@@ -23,7 +23,7 @@ const config: runtime.GetPrismaClientConfig = {
       "value": "prisma-client"
     },
     "output": {
-      "value": "/home/rafael/Desenvolvedor/MATC82-barbershop/backend/prisma/generated",
+      "value": "C:\\Users\\silva\\OneDrive\\Área de Trabalho\\dev\\barbershop\\backend\\prisma\\generated",
       "fromEnvVar": null
     },
     "config": {
@@ -32,12 +32,12 @@ const config: runtime.GetPrismaClientConfig = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "debian-openssl-3.0.x",
+        "value": "windows",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/home/rafael/Desenvolvedor/MATC82-barbershop/backend/prisma/schema.prisma",
+    "sourceFilePath": "C:\\Users\\silva\\OneDrive\\Área de Trabalho\\dev\\barbershop\\backend\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativePath": "..",
@@ -47,7 +47,6 @@ const config: runtime.GetPrismaClientConfig = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
