@@ -1,21 +1,22 @@
 // src/barbers/barbers.controller.ts
 import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
   Body,
-  Param,
-  Query,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
   HttpException,
   HttpStatus,
-  HttpCode,
   InternalServerErrorException,
+  Param,
+  Post,
+  Put,
+  Query,
 } from '@nestjs/common';
+import { BarbersService } from './barber.service';
 import { CreateBarberDto } from './dto/create-barber.dto';
 import { UpdateBarberDto } from './dto/update-barber.dto';
-import { BarbersService } from './barber.service';
+import { UpdateScheduleDto } from './dto/update-schedule.dto';
 
 @Controller('api/barbers')
 export class BarbersController {
@@ -131,5 +132,21 @@ export class BarbersController {
       );
     }
   }
-}
 
+  @Put(':id/schedule')
+  async updateBarberSchedule(
+    @Param('id') id: string,
+    @Body() updateScheduleDto: UpdateScheduleDto,
+    @Query('adminId') adminId: string, // Segurança básica
+  ) {
+    // Validação de Admin (opcional, mas recomendada)
+    if (!adminId)
+      throw new HttpException('adminId obrigatório', HttpStatus.FORBIDDEN);
+
+    try {
+      return await this.barbersService.updateSchedule(id, updateScheduleDto);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+}

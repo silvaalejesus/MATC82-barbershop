@@ -2,10 +2,54 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { CreateBarberDto } from './dto/create-barber.dto';
 import { UpdateBarberDto } from './dto/update-barber.dto';
+import { UpdateScheduleDto } from './dto/update-schedule.dto';
 
 @Injectable()
 export class BarbersService {
   constructor(private prisma: PrismaService) {}
+
+  async updateSchedule(barberId: string, updateScheduleDto: UpdateScheduleDto) {
+    const barber = await this.prisma.barber.findUnique({
+      where: { id: barberId },
+    });
+    if (!barber) throw new Error('Barbeiro não encontrado');
+
+    // Usamos transaction para garantir que todos os dias sejam atualizados ou nenhum
+    await this.prisma.$transaction(
+      updateScheduleDto.schedules.map((item) => {
+        // Converter strings "09:00" para Date (1970-01-01T09:00:00Z)
+        const toDate = (timeStr?: string) =>
+          timeStr ? new Date(`1970-01-01T${timeStr}:00Z`) : null;
+
+        return this.prisma.barberSchedule.upsert({
+          where: {
+            barberId_dayOfWeek: {
+              barberId: barberId,
+              dayOfWeek: item.dayOfWeek,
+            },
+          },
+          update: {
+            isAvailable: item.isAvailable,
+            startTime: toDate(item.startTime)!,
+            endTime: toDate(item.endTime)!,
+            breakStart: toDate(item.breakStart),
+            breakEnd: toDate(item.breakEnd),
+          },
+          create: {
+            barberId: barberId,
+            dayOfWeek: item.dayOfWeek,
+            isAvailable: item.isAvailable,
+            startTime: toDate(item.startTime)!,
+            endTime: toDate(item.endTime)!,
+            breakStart: toDate(item.breakStart),
+            breakEnd: toDate(item.breakEnd),
+          },
+        });
+      }),
+    );
+
+    return { message: 'Horários atualizados com sucesso' };
+  }
 
   async findAll() {
     return this.prisma.barber.findMany({

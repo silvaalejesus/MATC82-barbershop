@@ -9,7 +9,7 @@ docker compose -d
 
 npm i
 npx prisma generate
-npx prisma seed
+npx prisma db seed
 npx prisma db push
 
 npm run start:dev
