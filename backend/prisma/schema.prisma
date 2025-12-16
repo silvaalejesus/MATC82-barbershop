@@ -60,7 +60,6 @@ model Barber {
   hireDate    DateTime?    @map("hire_date")
   imageUrl    String?      @map("image_url") // Adicionado conforme init.sql
   createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at") // Adicionado default para evitar erro
 
   schedules    BarberSchedule[]
   appointments Appointment[]

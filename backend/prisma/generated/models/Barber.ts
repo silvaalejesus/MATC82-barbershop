@@ -34,7 +34,6 @@ export type BarberMinAggregateOutputType = {
   hireDate: Date | null
   imageUrl: string | null
   createdAt: Date | null
-  updatedAt: Date | null
 }
 
 export type BarberMaxAggregateOutputType = {
@@ -47,7 +46,6 @@ export type BarberMaxAggregateOutputType = {
   hireDate: Date | null
   imageUrl: string | null
   createdAt: Date | null
-  updatedAt: Date | null
 }
 
 export type BarberCountAggregateOutputType = {
@@ -61,7 +59,6 @@ export type BarberCountAggregateOutputType = {
   hireDate: number
   imageUrl: number
   createdAt: number
-  updatedAt: number
   _all: number
 }
 
@@ -76,7 +73,6 @@ export type BarberMinAggregateInputType = {
   hireDate?: true
   imageUrl?: true
   createdAt?: true
-  updatedAt?: true
 }
 
 export type BarberMaxAggregateInputType = {
@@ -89,7 +85,6 @@ export type BarberMaxAggregateInputType = {
   hireDate?: true
   imageUrl?: true
   createdAt?: true
-  updatedAt?: true
 }
 
 export type BarberCountAggregateInputType = {
@@ -103,7 +98,6 @@ export type BarberCountAggregateInputType = {
   hireDate?: true
   imageUrl?: true
   createdAt?: true
-  updatedAt?: true
   _all?: true
 }
 
@@ -190,7 +184,6 @@ export type BarberGroupByOutputType = {
   hireDate: Date | null
   imageUrl: string | null
   createdAt: Date
-  updatedAt: Date
   _count: BarberCountAggregateOutputType | null
   _min: BarberMinAggregateOutputType | null
   _max: BarberMaxAggregateOutputType | null
@@ -225,7 +218,6 @@ export type BarberWhereInput = {
   hireDate?: Prisma.DateTimeNullableFilter<"Barber"> | Date | string | null
   imageUrl?: Prisma.StringNullableFilter<"Barber"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Barber"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"Barber"> | Date | string
   schedules?: Prisma.BarberScheduleListRelationFilter
   appointments?: Prisma.AppointmentListRelationFilter
 }
@@ -241,7 +233,6 @@ export type BarberOrderByWithRelationInput = {
   hireDate?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
   schedules?: Prisma.BarberScheduleOrderByRelationAggregateInput
   appointments?: Prisma.AppointmentOrderByRelationAggregateInput
 }
@@ -260,7 +251,6 @@ export type BarberWhereUniqueInput = Prisma.AtLeast<{
   hireDate?: Prisma.DateTimeNullableFilter<"Barber"> | Date | string | null
   imageUrl?: Prisma.StringNullableFilter<"Barber"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Barber"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"Barber"> | Date | string
   schedules?: Prisma.BarberScheduleListRelationFilter
   appointments?: Prisma.AppointmentListRelationFilter
 }, "id" | "email">
@@ -276,7 +266,6 @@ export type BarberOrderByWithAggregationInput = {
   hireDate?: Prisma.SortOrderInput | Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
   _count?: Prisma.BarberCountOrderByAggregateInput
   _max?: Prisma.BarberMaxOrderByAggregateInput
   _min?: Prisma.BarberMinOrderByAggregateInput
@@ -296,7 +285,6 @@ export type BarberScalarWhereWithAggregatesInput = {
   hireDate?: Prisma.DateTimeNullableWithAggregatesFilter<"Barber"> | Date | string | null
   imageUrl?: Prisma.StringNullableWithAggregatesFilter<"Barber"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Barber"> | Date | string
-  updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Barber"> | Date | string
 }
 
 export type BarberCreateInput = {
@@ -310,7 +298,6 @@ export type BarberCreateInput = {
   hireDate?: Date | string | null
   imageUrl?: string | null
   createdAt?: Date | string
-  updatedAt?: Date | string
   schedules?: Prisma.BarberScheduleCreateNestedManyWithoutBarberInput
   appointments?: Prisma.AppointmentCreateNestedManyWithoutBarberInput
 }
@@ -326,7 +313,6 @@ export type BarberUncheckedCreateInput = {
   hireDate?: Date | string | null
   imageUrl?: string | null
   createdAt?: Date | string
-  updatedAt?: Date | string
   schedules?: Prisma.BarberScheduleUncheckedCreateNestedManyWithoutBarberInput
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutBarberInput
 }
@@ -342,7 +328,6 @@ export type BarberUpdateInput = {
   hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   schedules?: Prisma.BarberScheduleUpdateManyWithoutBarberNestedInput
   appointments?: Prisma.AppointmentUpdateManyWithoutBarberNestedInput
 }
@@ -358,7 +343,6 @@ export type BarberUncheckedUpdateInput = {
   hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   schedules?: Prisma.BarberScheduleUncheckedUpdateManyWithoutBarberNestedInput
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutBarberNestedInput
 }
@@ -374,7 +358,6 @@ export type BarberCreateManyInput = {
   hireDate?: Date | string | null
   imageUrl?: string | null
   createdAt?: Date | string
-  updatedAt?: Date | string
 }
 
 export type BarberUpdateManyMutationInput = {
@@ -388,7 +371,6 @@ export type BarberUpdateManyMutationInput = {
   hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type BarberUncheckedUpdateManyInput = {
@@ -402,7 +384,6 @@ export type BarberUncheckedUpdateManyInput = {
   hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type StringNullableListFilter<$PrismaModel = never> = {
@@ -424,7 +405,6 @@ export type BarberCountOrderByAggregateInput = {
   hireDate?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
 }
 
 export type BarberMaxOrderByAggregateInput = {
@@ -437,7 +417,6 @@ export type BarberMaxOrderByAggregateInput = {
   hireDate?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
 }
 
 export type BarberMinOrderByAggregateInput = {
@@ -450,7 +429,6 @@ export type BarberMinOrderByAggregateInput = {
   hireDate?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  updatedAt?: Prisma.SortOrder
 }
 
 export type BarberScalarRelationFilter = {
@@ -514,7 +492,6 @@ export type BarberCreateWithoutSchedulesInput = {
   hireDate?: Date | string | null
   imageUrl?: string | null
   createdAt?: Date | string
-  updatedAt?: Date | string
   appointments?: Prisma.AppointmentCreateNestedManyWithoutBarberInput
 }
 
@@ -529,7 +506,6 @@ export type BarberUncheckedCreateWithoutSchedulesInput = {
   hireDate?: Date | string | null
   imageUrl?: string | null
   createdAt?: Date | string
-  updatedAt?: Date | string
   appointments?: Prisma.AppointmentUncheckedCreateNestedManyWithoutBarberInput
 }
 
@@ -560,7 +536,6 @@ export type BarberUpdateWithoutSchedulesInput = {
   hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   appointments?: Prisma.AppointmentUpdateManyWithoutBarberNestedInput
 }
 
@@ -575,7 +550,6 @@ export type BarberUncheckedUpdateWithoutSchedulesInput = {
   hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   appointments?: Prisma.AppointmentUncheckedUpdateManyWithoutBarberNestedInput
 }
 
@@ -590,7 +564,6 @@ export type BarberCreateWithoutAppointmentsInput = {
   hireDate?: Date | string | null
   imageUrl?: string | null
   createdAt?: Date | string
-  updatedAt?: Date | string
   schedules?: Prisma.BarberScheduleCreateNestedManyWithoutBarberInput
 }
 
@@ -605,7 +578,6 @@ export type BarberUncheckedCreateWithoutAppointmentsInput = {
   hireDate?: Date | string | null
   imageUrl?: string | null
   createdAt?: Date | string
-  updatedAt?: Date | string
   schedules?: Prisma.BarberScheduleUncheckedCreateNestedManyWithoutBarberInput
 }
 
@@ -636,7 +608,6 @@ export type BarberUpdateWithoutAppointmentsInput = {
   hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   schedules?: Prisma.BarberScheduleUpdateManyWithoutBarberNestedInput
 }
 
@@ -651,7 +622,6 @@ export type BarberUncheckedUpdateWithoutAppointmentsInput = {
   hireDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   schedules?: Prisma.BarberScheduleUncheckedUpdateManyWithoutBarberNestedInput
 }
 
@@ -706,7 +676,6 @@ export type BarberSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   hireDate?: boolean
   imageUrl?: boolean
   createdAt?: boolean
-  updatedAt?: boolean
   schedules?: boolean | Prisma.Barber$schedulesArgs<ExtArgs>
   appointments?: boolean | Prisma.Barber$appointmentsArgs<ExtArgs>
   _count?: boolean | Prisma.BarberCountOutputTypeDefaultArgs<ExtArgs>
@@ -723,7 +692,6 @@ export type BarberSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   hireDate?: boolean
   imageUrl?: boolean
   createdAt?: boolean
-  updatedAt?: boolean
 }, ExtArgs["result"]["barber"]>
 
 export type BarberSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -737,7 +705,6 @@ export type BarberSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   hireDate?: boolean
   imageUrl?: boolean
   createdAt?: boolean
-  updatedAt?: boolean
 }, ExtArgs["result"]["barber"]>
 
 export type BarberSelectScalar = {
@@ -751,10 +718,9 @@ export type BarberSelectScalar = {
   hireDate?: boolean
   imageUrl?: boolean
   createdAt?: boolean
-  updatedAt?: boolean
 }
 
-export type BarberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "role" | "specialties" | "status" | "hireDate" | "imageUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["barber"]>
+export type BarberOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "email" | "phone" | "role" | "specialties" | "status" | "hireDate" | "imageUrl" | "createdAt", ExtArgs["result"]["barber"]>
 export type BarberInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   schedules?: boolean | Prisma.Barber$schedulesArgs<ExtArgs>
   appointments?: boolean | Prisma.Barber$appointmentsArgs<ExtArgs>
@@ -780,7 +746,6 @@ export type $BarberPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     hireDate: Date | null
     imageUrl: string | null
     createdAt: Date
-    updatedAt: Date
   }, ExtArgs["result"]["barber"]>
   composites: {}
 }
@@ -1216,7 +1181,6 @@ export interface BarberFieldRefs {
   readonly hireDate: Prisma.FieldRef<"Barber", 'DateTime'>
   readonly imageUrl: Prisma.FieldRef<"Barber", 'String'>
   readonly createdAt: Prisma.FieldRef<"Barber", 'DateTime'>
-  readonly updatedAt: Prisma.FieldRef<"Barber", 'DateTime'>
 }
     
 

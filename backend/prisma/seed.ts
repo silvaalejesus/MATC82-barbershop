@@ -1,51 +1,52 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from './generated/client';
 
 const prisma = new PrismaClient();
 
-// Função auxiliar para criar datas fictícias apenas para o horário (Prisma Time)
-// O Prisma armazena @db.Time como um DateTime completo, mas ignora a data na leitura
-const createTime = (timeString: string) => new Date(`1970-01-01T${timeString}:00Z`);
+// Função para criar datas fictícias apenas para o horário (Prisma Time)
+const createTime = (timeString: string) =>
+  new Date(`1970-01-01T${timeString}:00Z`);
 
 async function main() {
   console.log('🌱 Iniciando seed...');
 
-  // 1. Criar Serviços
+  // 1. Criar Serviços com UUIDs válidos
+  // UUIDs gerados online para serem fixos
   const corte = await prisma.service.upsert({
-    where: { id: 'corte-cabelo' }, // Usando ID fixo para facilitar
+    where: { id: '11111111-1111-1111-1111-111111111111' },
     update: {},
     create: {
-      id: 'corte-cabelo',
+      id: '11111111-1111-1111-1111-111111111111',
       name: 'Corte de Cabelo',
-      price: 45.00,
+      price: 45.0,
       durationMinutes: 45,
       description: 'Corte tradicional ou moderno com tesoura e máquina',
-      imageUrl: '/professional-haircut.png'
+      imageUrl: '/professional-haircut.png',
     },
   });
 
   const barba = await prisma.service.upsert({
-    where: { id: 'barba-completa' },
+    where: { id: '22222222-2222-2222-2222-222222222222' },
     update: {},
     create: {
-      id: 'barba-completa',
+      id: '22222222-2222-2222-2222-222222222222',
       name: 'Barba Completa',
-      price: 35.00,
+      price: 35.0,
       durationMinutes: 30,
       description: 'Barba desenhada com toalha quente e navalha',
-      imageUrl: '/beard-trim-grooming-barbershop.jpg'
+      imageUrl: '/beard-trim-grooming-barbershop.jpg',
     },
   });
 
   const combo = await prisma.service.upsert({
-    where: { id: 'combo-corte-barba' },
+    where: { id: '33333333-3333-3333-3333-333333333333' },
     update: {},
     create: {
-      id: 'combo-corte-barba',
+      id: '33333333-3333-3333-3333-333333333333',
       name: 'Combo Corte + Barba',
-      price: 70.00,
+      price: 70.0,
       durationMinutes: 70,
       description: 'Serviço completo de cabelo e barba',
-      imageUrl: '/mens-grooming-haircut-beard-combo.jpg'
+      imageUrl: '/mens-grooming-haircut-beard-combo.jpg',
     },
   });
 
@@ -56,12 +57,13 @@ async function main() {
     where: { email: 'carlos@barber.com' },
     update: {},
     create: {
+      id: '44444444-4444-4444-4444-444444444444',
       name: 'Carlos Silva',
       email: 'carlos@barber.com',
       role: 'Barbeiro Master',
       phone: '11999990001',
       specialties: ['Corte Clássico', 'Degradê'],
-      imageUrl: '/professional-barber-portrait-male.jpg'
+      imageUrl: '/professional-barber-portrait-male.jpg',
     },
   });
 
@@ -69,12 +71,13 @@ async function main() {
     where: { email: 'joao@barber.com' },
     update: {},
     create: {
+      id: '55555555-5555-5555-5555-555555555555',
       name: 'João Santos',
       email: 'joao@barber.com',
       role: 'Especialista em Barba',
       phone: '11999990002',
       specialties: ['Barba', 'Pigmentação'],
-      imageUrl: '/barber-specialist-portrait-male.jpg'
+      imageUrl: '/barber-specialist-portrait-male.jpg',
     },
   });
 
@@ -82,22 +85,23 @@ async function main() {
     where: { email: 'pedro@barber.com' },
     update: {},
     create: {
+      id: '66666666-6666-6666-6666-666666666666',
       name: 'Pedro Costa',
       email: 'pedro@barber.com',
       role: 'Barbeiro Sênior',
       phone: '11999990003',
       specialties: ['Corte Moderno', 'Platinado'],
-      imageUrl: '/senior-barber-portrait-male.jpg'
+      imageUrl: '/senior-barber-portrait-male.jpg',
     },
   });
 
   console.log('✅ Barbeiros criados');
 
-  // 3. Criar Horários (Schedules) para TODOS os barbeiros
+  // 3. Criar Horários (Schedules)
   const allBarbers = [barber1, barber2, barber3];
 
   for (const barber of allBarbers) {
-    console.log(`Creating schedule for ${barber.name}...`);
+    console.log(`📅 Criando agenda para ${barber.name}...`);
 
     // Segunda (1) a Sexta (5)
     for (let day = 1; day <= 5; day++) {
@@ -108,7 +112,7 @@ async function main() {
             dayOfWeek: day,
           },
         },
-        update: {}, // Não sobrescreve se já existir
+        update: {},
         create: {
           barberId: barber.id,
           dayOfWeek: day,
@@ -121,7 +125,7 @@ async function main() {
       });
     }
 
-    // Sábado (6) - Horário reduzido
+    // Sábado (6)
     await prisma.barberSchedule.upsert({
       where: {
         barberId_dayOfWeek: {
@@ -135,14 +139,14 @@ async function main() {
         dayOfWeek: 6,
         startTime: createTime('09:00'),
         endTime: createTime('14:00'),
-        breakStart: null, // Sem almoço no sábado
+        breakStart: null,
         breakEnd: null,
         isAvailable: true,
       },
     });
   }
 
-  console.log('✅ Horários (Slots) criados');
+  console.log('✅ Horários criados');
 }
 
 main()

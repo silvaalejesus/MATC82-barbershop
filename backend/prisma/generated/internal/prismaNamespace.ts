@@ -847,8 +847,7 @@ export const BarberScalarFieldEnum = {
   status: 'status',
   hireDate: 'hireDate',
   imageUrl: 'imageUrl',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  createdAt: 'createdAt'
 } as const
 
 export type BarberScalarFieldEnum = (typeof BarberScalarFieldEnum)[keyof typeof BarberScalarFieldEnum]
