@@ -63,7 +63,6 @@ export function PaymentModal() {
     e.preventDefault()
     setStep("processing")
 
-    // Simula processamento de pagamento
     setTimeout(() => {
       const randomSuccess = Math.random() > 0.2 // 80% de sucesso
       setStep(randomSuccess ? "success" : "error")

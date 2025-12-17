@@ -42,4 +42,3 @@ export class CreateBarberDto {
   @IsUrl()
   image: string;
 }
-

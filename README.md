@@ -1,193 +1,132 @@
-Com base nos requisitos do projeto **Barbearia (MATC82)** e na necessidade de separação entre **Leitura (Read)** e **Escrita (Write)**, elaborei a estrutura do banco de dados PostgreSQL.
+# Projeto Barbearia - MATC82
 
-Para atender ao requisito de separação sem adicionar complexidade excessiva de infraestrutura manual, utilizei a abordagem de **Replicação** (Primary/Replica). Abaixo estão os scripts SQL, o arquivo para subir o ambiente (Docker) e a documentação.
+Este é um sistema de gerenciamento de barbearia full-stack, permitindo que clientes agendem horários e que administradores gerenciem os serviços, barbeiros e agendamentos.
 
-### 1\. Estrutura do Banco de Dados (Schema SQL)
+## ✨ Funcionalidades
 
-Este script (`init.sql`) cria as tabelas baseadas nos arquivos `store.ts` e `backend/README.md`. Ele deve ser executado no banco de escrita (Primary).
+-   **Frontend (Cliente):**
+    -   Visualização de serviços e barbeiros.
+    -   Agendamento de horários.
+    -   Autenticação de usuários (cadastro e login).
+    -   Página de perfil do usuário.
+-   **Backend (Admin/Gerenciamento):**
+    -   API RESTful para gerenciar usuários, barbeiros, serviços e agendamentos.
+    -   Dashboard administrativo.
+    -   Sistema de autenticação.
 
-```sql
--- Habilita extensão para gerar UUIDs
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+## 🚀 Tecnologias Utilizadas
 
--- ENUMS para status e roles (baseado no código frontend)
-CREATE TYPE user_role AS ENUM ('client', 'admin', 'barber');
-CREATE TYPE appointment_status AS ENUM ('confirmed', 'completed', 'cancelled');
-CREATE TYPE barber_status AS ENUM ('active', 'inactive');
+-   **Frontend:**
+    -   [Next.js](https://nextjs.org/)
+    -   [React](https://reactjs.org/)
+    -   [TypeScript](https://www.typescriptlang.org/)
+    -   [Tailwind CSS](https://tailwindcss.com/)
+    -   [Shadcn/UI](https://ui.shadcn.com/)
+-   **Backend:**
+    -   [NestJS](https://nestjs.com/)
+    -   [TypeScript](https://www.typescriptlang.org/)
+    -   [Prisma ORM](https://www.prisma.io/)
+-   **Banco de Dados:**
+    -   [PostgreSQL](https://www.postgresql.org/) (com replicação primário/réplica)
+-   **Containerização:**
+    -   [Docker](https://www.docker.com/)
 
--- Tabela de Usuários (Clientes e Admins)
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    phone VARCHAR(20),
-    password_hash VARCHAR(255) NOT NULL, -- Senha deve ser hashada no backend
-    role user_role DEFAULT 'client',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+## ⚙️ Pré-requisitos
 
--- Tabela de Barbeiros (Pode ter login ou não, aqui separamos para dados específicos)
-CREATE TABLE barbers (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    phone VARCHAR(20),
-    role VARCHAR(100) DEFAULT 'Barbeiro', -- Ex: Barbeiro Master
-    image_url VARCHAR(255),
-    specialties TEXT[], -- Array de strings (Ex: ['Corte', 'Barba'])
-    status barber_status DEFAULT 'active',
-    hire_date DATE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+-   [Node.js](https://nodejs.org/en/) (versão 18 ou superior)
+-   [Docker](https://www.docker.com/get-started) e [Docker Compose](https://docs.docker.com/compose/install/)
 
--- Tabela de Serviços
-CREATE TABLE services (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(255) NOT NULL,
-    price DECIMAL(10, 2) NOT NULL, -- Armazena valor numérico (Front formata R$)
-    duration_minutes INTEGER NOT NULL, -- Ex: 45
-    description TEXT,
-    image_url VARCHAR(255),
-    active BOOLEAN DEFAULT TRUE
-);
+## 🏁 Guia de Instalação e Execução
 
--- Tabela de Agenda de Trabalho dos Barbeiros
-CREATE TABLE barber_schedules (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    barber_id UUID REFERENCES barbers(id) ON DELETE CASCADE,
-    day_of_week INTEGER NOT NULL, -- 0 (Domingo) a 6 (Sábado)
-    is_available BOOLEAN DEFAULT TRUE,
-    start_time TIME NOT NULL,
-    end_time TIME NOT NULL,
-    break_start TIME,
-    break_end TIME,
-    UNIQUE(barber_id, day_of_week) -- Garante apenas uma configuração por dia por barbeiro
-);
+Siga os passos abaixo para configurar e executar o ambiente de desenvolvimento.
 
--- Tabela de Agendamentos
-CREATE TABLE appointments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    service_id UUID REFERENCES services(id),
-    barber_id UUID REFERENCES barbers(id),
-    user_id UUID REFERENCES users(id), -- Pode ser NULL se agendado por admin para convidado
-    customer_name VARCHAR(255), -- Preenchido se user_id for NULL
-    customer_phone VARCHAR(20), -- Preenchido se user_id for NULL
-    date DATE NOT NULL,
-    time TIME NOT NULL,
-    status appointment_status DEFAULT 'confirmed',
-    price DECIMAL(10, 2) NOT NULL, -- Preço congelado no momento da reserva
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
+### 1. Clonar o Repositório
 
--- Índices para otimizar leitura (Banco de Leitura se beneficia disso)
-CREATE INDEX idx_appointments_date ON appointments(date);
-CREATE INDEX idx_appointments_barber ON appointments(barber_id);
-CREATE INDEX idx_appointments_user ON appointments(user_id);
-CREATE INDEX idx_users_email ON users(email);
+```bash
+git clone <URL_DO_REPOSITORIO>
+cd MATC82-barbershop
 ```
 
------
+### 2. Configurar Variáveis de Ambiente
 
-### 2\. Infraestrutura (Docker Compose)
+Crie os arquivos `.env` para o backend e frontend.
 
-Para simular o ambiente com **Banco de Escrita (Primary)** e **Banco de Leitura (Replica)** de forma simples, utilizaremos as imagens da Bitnami que já possuem scripts de configuração de replicação facilitada.
+**a) Backend (`backend/.env`)**
 
-Crie um arquivo `docker-compose.yml`:
+```env
+# URL do banco de dados principal (escrita)
+DATABASE_URL="postgresql://barber_user:barber_pass@localhost:5434/barbershop_db?schema=public"
 
-```yaml
-version: '3.8'
-
-services:
-  # BANCO DE ESCRITA (PRIMARY)
-  pg-primary:
-    image: bitnami/postgresql:16
-    container_name: barbershop-primary
-    ports:
-      - '5432:5432'
-    volumes:
-      - pg_primary_data:/bitnami/postgresql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    environment:
-      - POSTGRESQL_POSTGRES_PASSWORD=admin123
-      - POSTGRESQL_USERNAME=barber_user
-      - POSTGRESQL_PASSWORD=barber_pass
-      - POSTGRESQL_DATABASE=barbershop_db
-      - POSTGRESQL_REPLICATION_MODE=master
-      - POSTGRESQL_REPLICATION_USER=repl_user
-      - POSTGRESQL_REPLICATION_PASSWORD=repl_pass
-    networks:
-      - barber-network
-
-  # BANCO DE LEITURA (REPLICA)
-  pg-replica:
-    image: bitnami/postgresql:16
-    container_name: barbershop-replica
-    ports:
-      - '5433:5432' # Exposto na porta 5433 para não conflitar
-    depends_on:
-      - pg-primary
-    volumes:
-      - pg_replica_data:/bitnami/postgresql
-    environment:
-      - POSTGRESQL_POSTGRES_PASSWORD=admin123
-      - POSTGRESQL_REPLICATION_MODE=slave
-      - POSTGRESQL_REPLICATION_USER=repl_user
-      - POSTGRESQL_REPLICATION_PASSWORD=repl_pass
-      - POSTGRESQL_MASTER_HOST=pg-primary
-      - POSTGRESQL_MASTER_PORT_NUMBER=5432
-    networks:
-      - barber-network
-
-networks:
-  barber-network:
-    driver: bridge
-
-volumes:
-  pg_primary_data:
-  pg_replica_data:
+# Porta do servidor Backend
+PORT=3001
 ```
 
-### 3\. Documentação do Banco de Dados
+**b) Frontend (`frontend/.env.local`)**
 
-#### Visão Geral da Arquitetura
+```env
+# URL da API do backend
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
+```
 
-O sistema utiliza uma arquitetura **Master-Slave (Primary-Replica)**.
+### 3. Iniciar o Banco de Dados
 
-  * **Write DB (Porta 5432):** Recebe todas as operações `INSERT`, `UPDATE`, `DELETE`. As alterações são replicadas automaticamente para o banco de leitura.
-  * **Read DB (Porta 5433):** Recebe apenas operações `SELECT`. Isso alivia a carga do banco principal, ideal para dashboards, relatórios e listagem de serviços.
+O Docker irá inicializar dois contêineres PostgreSQL: um para escrita (`porta 5434`) e outro para leitura (`porta 5433`).
 
-#### Configuração de Conexão (Backend)
+```bash
+docker-compose up -d
+```
+*Observação: Você só precisa executar este comando uma vez. Para futuras sessões, você pode simplesmente iniciar os contêineres pelo seu aplicativo Docker Desktop.*
 
-No seu backend (Node.js/Next.js), você deve configurar duas strings de conexão:
+### 4. Configurar e Iniciar o Backend
 
-1.  **DATABASE\_WRITE\_URL:** `postgres://barber_user:barber_pass@localhost:5432/barbershop_db`
-2.  **DATABASE\_READ\_URL:** `postgres://barber_user:barber_pass@localhost:5433/barbershop_db`
+Abra um novo terminal e navegue até a pasta do backend.
 
-#### Dicionário de Dados
+```bash
+cd backend
 
-| Tabela | Descrição | Principais Colunas |
-| :--- | :--- | :--- |
-| **users** | Armazena dados de autenticação e perfil de clientes e administradores. | `id`, `email`, `role`, `password_hash` |
-| **barbers** | Cadastro detalhado dos profissionais, incluindo especialidades e fotos. | `id`, `specialties` (array), `status` |
-| **services** | Catálogo de serviços oferecidos pela barbearia. | `id`, `price` (decimal), `duration_minutes` |
-| **barber\_schedules** | Configuração semanal de horários. Define quando cada barbeiro trabalha. | `day_of_week`, `start_time`, `end_time` |
-| **appointments** | Tabela transacional principal. Liga Cliente, Barbeiro e Serviço. | `date`, `time`, `status`, `price` (histórico) |
+# Instalar dependências
+npm install
 
-#### Como rodar o projeto
+# Gerar o cliente Prisma
+npx prisma generate
 
-1.  Salve o código SQL acima em um arquivo chamado `init.sql`.
-2.  Salve o código YAML em um arquivo chamado `docker-compose.yml`.
-3.  Execute o comando no terminal:
-    ```bash
-    docker-compose up -d
-    ```
-4.  O banco de dados estará pronto com replicação ativa.
+# Aplicar o schema no banco de dados
+npx prisma db push
 
-#### Exemplo de uso no Backend (Conceitual)
+# Popular o banco de dados com dados iniciais (seed)
+npx prisma db seed
 
-Quando for implementar no backend (usando Prisma ou Drizzle ORM, por exemplo), você direcionará as queries:
+# Iniciar o servidor de desenvolvimento
+npm run start:dev
+```
+O servidor backend estará rodando em `http://localhost:3001`.
 
-  * **Criar Agendamento (`POST /appointments`):** Usa o cliente conectado ao **Write DB**.
-  * **Listar Barbeiros (`GET /barbers`):** Usa o cliente conectado ao **Read DB**.
-  * **Dashboard Admin (`GET /admin/dashboard`):** Usa o cliente conectado ao **Read DB** (pois são queries pesadas de agregação).****
+### 5. Configurar e Iniciar o Frontend
+
+Abra um terceiro terminal e navegue até a pasta do frontend.
+
+```bash
+cd frontend
+
+# Instalar dependências
+npm install
+
+# Iniciar o servidor de desenvolvimento
+npm run dev
+```
+A aplicação frontend estará acessível em `http://localhost:3000`.
+
+### 6. Acesso de Administrador (Mock)
+
+Para acessar a área de administração no frontend, utilize as seguintes credenciais:
+-   **Email:** `admin@barber.com`
+-   **Senha:** `admin123`
+
+## 🗄️ Arquitetura do Banco de Dados
+
+O projeto utiliza uma arquitetura de banco de dados com replicação **Primário-Réplica (Master-Slave)** para separar as cargas de trabalho de escrita e leitura:
+
+-   **Banco de Escrita (Primário):** Acessível na porta `5434`. Responsável por todas as operações de `INSERT`, `UPDATE` e `DELETE`.
+-   **Banco de Leitura (Réplica):** Acessível na porta `5433`. Utilizado para operações de `SELECT`, otimizando consultas para listagens, dashboards e relatórios.
+
+Esta abordagem melhora a performance e a escalabilidade da aplicação.

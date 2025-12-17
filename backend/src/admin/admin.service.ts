@@ -4,7 +4,7 @@ import { PrismaService } from 'src/common/prisma/prisma.service';
 interface ScheduleDay {
   dayOfWeek: number;
   isAvailable: boolean;
-  startTime: string; // Vem como string do JSON
+  startTime: string;
   endTime: string;
   breakStart?: string;
   breakEnd?: string;
@@ -14,9 +14,6 @@ interface ScheduleDay {
 export class AdminService {
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Verifica se o usuário é admin
-   */
   async verifyAdmin(userId: string): Promise<boolean> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -26,10 +23,6 @@ export class AdminService {
     return user?.role === 'admin';
   }
 
-  /**
-   * GET /api/admin/dashboard
-   * Agrega todos os dados para o dashboard
-   */
   async getDashboardData() {
     const totalAppointments = await this.prisma.appointment.count();
 
@@ -189,14 +182,11 @@ export class AdminService {
       .sort((a, b) => b.completedCount - a.completedCount);
   }
 
-  /**
-   * GET /api/admin/schedules
-   */
   async getAllSchedules() {
     const barbers = await this.prisma.barber.findMany({
       include: {
         schedules: {
-          orderBy: { dayOfWeek: 'asc' }, // CORRIGIDO: dayOfWeek
+          orderBy: { dayOfWeek: 'asc' },
         },
       },
       orderBy: { name: 'asc' },
@@ -210,19 +200,16 @@ export class AdminService {
       barberStatus: barber.status,
       schedule: barber.schedules.map((sched) => ({
         id: sched.id,
-        dayOfWeek: sched.dayOfWeek, // CORRIGIDO
-        isAvailable: sched.isAvailable, // CORRIGIDO
-        startTime: sched.startTime, // CORRIGIDO
-        endTime: sched.endTime, // CORRIGIDO
-        breakStart: sched.breakStart, // CORRIGIDO
-        breakEnd: sched.breakEnd, // CORRIGIDO
+        dayOfWeek: sched.dayOfWeek,
+        isAvailable: sched.isAvailable,
+        startTime: sched.startTime,
+        endTime: sched.endTime,
+        breakStart: sched.breakStart,
+        breakEnd: sched.breakEnd,
       })),
     }));
   }
 
-  /**
-   * PUT /api/admin/schedules/:barberId
-   */
   async updateBarberSchedule(barberId: string, schedule: ScheduleDay[]) {
     const barber = await this.prisma.barber.findUnique({
       where: { id: barberId },
@@ -232,13 +219,10 @@ export class AdminService {
       return null;
     }
 
-    // Remove agendas antigas
     await this.prisma.barberSchedule.deleteMany({
-      where: { barberId: barberId }, // CORRIGIDO: barberId
+      where: { barberId: barberId },
     });
 
-    // Converter string de hora 'HH:MM' para Date object
-    // Assumindo data arbitrária pois o banco pede DateTime para Time column
     const toDate = (timeStr?: string) => {
       if (!timeStr) return null;
       const [hours, minutes] = timeStr.split(':').map(Number);
@@ -247,15 +231,13 @@ export class AdminService {
       return d;
     };
 
-    // Cria as novas agendas
-    // Nota: O Prisma Client espera objetos Date para colunas DateTime/@db.Time
     await Promise.all(
       schedule.map((day) =>
         this.prisma.barberSchedule.create({
           data: {
-            barberId: barberId, // CORRIGIDO
-            dayOfWeek: day.dayOfWeek, // CORRIGIDO
-            isAvailable: day.isAvailable, // CORRIGIDO
+            barberId: barberId,
+            dayOfWeek: day.dayOfWeek,
+            isAvailable: day.isAvailable,
             startTime: toDate(day.startTime)!,
             endTime: toDate(day.endTime)!,
             breakStart: toDate(day.breakStart),
@@ -265,7 +247,6 @@ export class AdminService {
       ),
     );
 
-    // Retorna a agenda atualizada (busca do banco para garantir formato)
     const updatedSchedules = await this.prisma.barberSchedule.findMany({
       where: { barberId },
       orderBy: { dayOfWeek: 'asc' },
@@ -278,12 +259,9 @@ export class AdminService {
     };
   }
 
-  /**
-   * GET /api/admin/clients
-   */
   async getAllClients(search?: string) {
     const where: any = {
-      role: 'client', // CORRIGIDO: 'custumer' -> 'client'
+      role: 'client',
     };
 
     if (search) {
@@ -338,9 +316,6 @@ export class AdminService {
     });
   }
 
-  /**
-   * GET /api/admin/appointments
-   */
   async getAllAppointments(status?: string) {
     const where: any = {};
 
@@ -360,20 +335,18 @@ export class AdminService {
 
     return appointments.map((apt) => ({
       id: apt.id,
-      serviceId: apt.serviceId, // CORRIGIDO
-      barberId: apt.barberId, // CORRIGIDO
-      userId: apt.userId, // CORRIGIDO
+      serviceId: apt.serviceId,
+      barberId: apt.barberId,
+      userId: apt.userId,
       date: apt.date,
       time: apt.time,
       status: apt.status,
       createdAt: apt.createdAt,
       service: apt.service,
       barber: apt.barber,
-      // User pode ser nulo se agendamento foi feito sem cadastro (dependendo da regra)
-      // Se seu SQL permite user_id nulo, apt.user pode ser null.
-      clientName: apt.user?.name || apt.customerName, // CORRIGIDO: customerName
+      clientName: apt.user?.name || apt.customerName,
       clientEmail: apt.user?.email || null,
-      clientPhone: apt.user?.phone || apt.customerPhone, // CORRIGIDO: customerPhone
+      clientPhone: apt.user?.phone || apt.customerPhone,
       clientId: apt.user?.id || null,
     }));
   }

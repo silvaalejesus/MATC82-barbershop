@@ -35,8 +35,8 @@ export class AppointmentsService {
     const existingAppointment = await this.prisma.appointment.findFirst({
       where: {
         barberId: createAppointmentDto.barberId,
-        date: dateObject, // Usar objeto Date
-        time: timeObject, // Usar objeto Date
+        date: dateObject,
+        time: timeObject,
         status: { in: ['confirmed'] },
       },
     });
@@ -48,16 +48,16 @@ export class AppointmentsService {
     const appointmentData: any = {
       serviceId: createAppointmentDto.serviceId,
       barberId: createAppointmentDto.barberId,
-      date: dateObject, // <--- Aqui vai o Date, não a string
-      time: timeObject, // <--- Aqui vai o Date, não a string
-      status: 'confirmed', // Alterado para confirmed se não houver fluxo de pagamento
+      date: dateObject,
+      time: timeObject,
+      status: 'confirmed',
     };
 
     if (userId) {
       appointmentData.userId = userId;
     } else {
-      appointmentData.customerName = createAppointmentDto.name; // Ajuste para bater com o schema (customerName)
-      appointmentData.customerPhone = createAppointmentDto.phone; // Ajuste para bater com o schema (customerPhone)
+      appointmentData.customerName = createAppointmentDto.name;
+      appointmentData.customerPhone = createAppointmentDto.phone;
     }
 
     appointmentData.price = service.price;
@@ -67,25 +67,8 @@ export class AppointmentsService {
       include: {
         service: true,
         barber: true,
-        // user: true, // Remova ou ajuste o include se der erro de tipagem no retorno
       },
     });
-
-    // const appointment = await this.prisma.appointment.create({
-    //   data: appointmentData,
-    //   include: {
-    //     service: true,
-    //     barber: true,
-    //     // user: {
-    //     //   select: {
-    //     //     id: true,
-    //     //     name: true,
-    //     //     email: true,
-    //     //     phone: true,
-    //     //   },
-    //     // },
-    //   },
-    // });
 
     return appointment;
   }

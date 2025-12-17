@@ -9,10 +9,8 @@ export class UsersService {
   async findById(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      // CORRIGIDO: O prisma 7 usa omit, mas verifique se seu preview feature está ativo.
-      // Se der erro no omit, use select explícito. Mas assumindo Prisma 7:
       omit: {
-        passwordHash: true, // CORRIGIDO: passwordHash
+        passwordHash: true,
       },
     });
 
@@ -36,7 +34,7 @@ export class UsersService {
         ...(updateUserDto.phone && { phone: updateUserDto.phone }),
       },
       omit: {
-        passwordHash: true, // CORRIGIDO: passwordHash
+        passwordHash: true,
       },
     });
 

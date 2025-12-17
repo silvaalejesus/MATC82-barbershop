@@ -73,49 +73,6 @@ export default function BarbersManagementPage() {
     setIsDialogOpen(true);
   };
 
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault();
-
-  //   const specialtiesArray = formData.specialties
-  //     .split(",")
-  //     .map((s) => s.trim());
-
-  //   if (editingBarber) {
-  //     // Update existing barber
-  //     setBarbers(
-  //       barbers.map((b) =>
-  //         b.id === editingBarber.id
-  //           ? {
-  //               ...b,
-  //               name: formData.name,
-  //               email: formData.email,
-  //               phone: formData.phone,
-  //               role: formData.role,
-  //               specialties: specialtiesArray,
-  //               status: formData.status,
-  //             }
-  //           : b
-  //       )
-  //     );
-  //   } else {
-  //     // Add new barber
-  //     const newBarber: Barber = {
-  //       id: `barber-${Date.now()}`,
-  //       name: formData.name,
-  //       email: formData.email,
-  //       phone: formData.phone,
-  //       role: formData.role,
-  //       specialties: specialtiesArray,
-  //       status: formData.status,
-  //       image: "/professional-barber-portrait-male.jpg",
-  //       hireDate: new Date().toISOString().split("T")[0],
-  //     };
-  //     setBarbers([...barbers, newBarber]);
-  //   }
-
-  //   setIsDialogOpen(false);
-  // };
-
   useEffect(() => {
     fetcher("/barbers")
       .then((data) => setBarbers(data))
@@ -129,7 +86,6 @@ export default function BarbersManagementPage() {
   };
 
   const handleCreateBarber = async (formData: any) => {
-    // ⚠️ ID TEMPORÁRIO: Em produção virá do contexto de login (Auth)
     const adminId = "id-do-admin-aqui";
 
     try {
@@ -139,12 +95,11 @@ export default function BarbersManagementPage() {
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          specialties: formData.specialties, // Deve ser um array de strings
-          imageUrl: formData.image, // Verifique se o back espera 'imageUrl' ou 'image'
+          specialties: formData.specialties, 
+          imageUrl: formData.image, 
         }),
       });
 
-      // Atualizar a lista localmente para refletir a mudança sem recarregar
       setBarbers((prev) => [...prev, newBarber]);
       alert("Barbeiro criado com sucesso!");
     } catch (error) {
@@ -154,7 +109,7 @@ export default function BarbersManagementPage() {
   };
 
   const handleUpdateBarber = async (barberId: string, formData: any) => {
-    const adminId = "id-do-admin-aqui"; // Temporário
+    const adminId = "id-do-admin-aqui"; 
 
     try {
       const updatedBarber = await fetcher(
@@ -165,12 +120,11 @@ export default function BarbersManagementPage() {
             name: formData.name,
             phone: formData.phone,
             specialties: formData.specialties,
-            status: formData.status, // 'active' ou 'inactive'
+            status: formData.status, 
           }),
         }
       );
 
-      // Atualizar o atom local
       setBarbers((prev) =>
         prev.map((b) => (b.id === barberId ? updatedBarber : b))
       );

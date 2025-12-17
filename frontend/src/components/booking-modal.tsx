@@ -7,11 +7,11 @@ import {
   bookingModalOpenAtom, 
   selectedServiceAtom, 
   selectedBarberAtom, 
-  barbersAtom,   // Dados reais do backend
-  servicesAtom,  // Dados reais do backend
-  userAtom       // Usuário logado
+  barbersAtom,   
+  servicesAtom,  
+  userAtom       
 } from "@/lib/store"
-import { fetcher } from "@/lib/api" // Importar o fetcher
+import { fetcher } from "@/lib/api" 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,7 +22,6 @@ import { Calendar, Clock, User, Loader2 } from "lucide-react"
 export function BookingModal() {
   const [open, setOpen] = useAtom(bookingModalOpenAtom)
   
-  // Ler dados dos Atoms (povoados pela API)
   const services = useAtomValue(servicesAtom)
   const barbers = useAtomValue(barbersAtom)
   const user = useAtomValue(userAtom)
@@ -32,7 +31,6 @@ export function BookingModal() {
   
   const [step, setStep] = useState(1)
   
-  // Estado para os horários dinâmicos
   const [availableSlots, setAvailableSlots] = useState<string[]>([])
   const [isLoadingSlots, setIsLoadingSlots] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -46,7 +44,6 @@ export function BookingModal() {
     time: "",
   })
 
-  // 1. Preencher dados do usuário automaticamente ao abrir
   useEffect(() => {
     if (open && user) {
       setFormData(prev => ({
@@ -57,14 +54,11 @@ export function BookingModal() {
     }
   }, [open, user])
 
-  // 2. Buscar Horários Disponíveis no Backend
   useEffect(() => {
-    // Só busca se tiver Barbeiro e Data selecionados e estivermos no passo 2
     if (formData.barber && formData.date && step === 2) {
       setIsLoadingSlots(true)
       setAvailableSlots([]) // Limpa anteriores
 
-      // A data do input type="date" já vem como YYYY-MM-DD, perfeito para o backend
       const queryDate = formData.date; 
 
       fetcher(`/availability?barberId=${formData.barber}&date=${queryDate}`)
@@ -84,7 +78,6 @@ export function BookingModal() {
     setIsSubmitting(true)
 
     try {
-      // Formatar payload para a API
       const payload = {
         serviceId: formData.service,
         barberId: formData.barber,
@@ -94,7 +87,6 @@ export function BookingModal() {
         phone: formData.phone,
       }
 
-      // Envia userId na query string se estiver logado
       const endpoint = user?.id 
         ? `/appointments?userId=${user.id}` 
         : `/appointments`
@@ -106,7 +98,6 @@ export function BookingModal() {
 
       alert("Agendamento realizado com sucesso!")
       setOpen(false)
-      // Resetar formulário
       setStep(1)
       setFormData({ name: "", phone: "", service: "", barber: "", date: "", time: "" })
       
@@ -130,7 +121,6 @@ export function BookingModal() {
     if (step > 1) setStep(step - 1)
   }
 
-  // Encontrar objetos completos para exibição baseados no ID selecionado
   const selectedServiceData = services.find((s) => s.id === formData.service)
   const selectedBarberData = barbers.find((b) => b.id === formData.barber)
 

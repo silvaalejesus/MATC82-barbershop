@@ -15,9 +15,6 @@ import { UpdateScheduleDto } from './dto/update-admin.dto';
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
-  /**
-   * Middleware para verificar se o usuário é admin
-   */
   private async verifyAdmin(adminId: string) {
     if (!adminId) {
       throw new HttpException('adminId é obrigatório', HttpStatus.BAD_REQUEST);
@@ -29,10 +26,6 @@ export class AdminController {
     }
   }
 
-  /**
-   * GET /api/admin/dashboard
-   * Retorna todos os dados agregados do dashboard
-   */
   @Get('dashboard')
   async getDashboard(@Query('adminId') adminId: string) {
     await this.verifyAdmin(adminId);
@@ -48,10 +41,6 @@ export class AdminController {
     }
   }
 
-  /**
-   * GET /api/admin/dashboard/stats
-   * Retorna as estatísticas de faturamento e clientes
-   */
   @Get('dashboard/stats')
   async getStats(@Query('adminId') adminId: string) {
     await this.verifyAdmin(adminId);
@@ -67,10 +56,6 @@ export class AdminController {
     }
   }
 
-  /**
-   * GET /api/admin/schedules
-   * Lista as agendas de todos os barbeiros
-   */
   @Get('schedules')
   async getSchedules(@Query('adminId') adminId: string) {
     await this.verifyAdmin(adminId);
@@ -86,10 +71,6 @@ export class AdminController {
     }
   }
 
-  /**
-   * PUT /api/admin/schedules/:barberId
-   * Atualiza a agenda completa de um barbeiro
-   */
   @Put('schedules/:barberId')
   async updateSchedule(
     @Param('barberId') barberId: string,
@@ -123,10 +104,6 @@ export class AdminController {
     }
   }
 
-  /**
-   * GET /api/admin/clients
-   * Lista todos os clientes com suas estatísticas
-   */
   @Get('clients')
   async getClients(
     @Query('adminId') adminId: string,
@@ -145,10 +122,6 @@ export class AdminController {
     }
   }
 
-  /**
-   * GET /api/admin/appointments
-   * Lista todos os agendamentos com filtros opcionais
-   */
   @Get('appointments')
   async getAppointments(
     @Query('adminId') adminId: string,

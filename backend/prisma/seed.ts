@@ -2,15 +2,13 @@ import { PrismaClient } from './generated/client';
 
 const prisma = new PrismaClient();
 
-// Função para criar datas fictícias apenas para o horário (Prisma Time)
 const createTime = (timeString: string) =>
   new Date(`1970-01-01T${timeString}:00Z`);
 
 async function main() {
   console.log('🌱 Iniciando seed...');
 
-  // 1. Criar Serviços com UUIDs válidos
-  // UUIDs gerados online para serem fixos
+  // 1. Criar Serviços
   const corte = await prisma.service.upsert({
     where: { id: '11111111-1111-1111-1111-111111111111' },
     update: {},
@@ -97,13 +95,12 @@ async function main() {
 
   console.log('✅ Barbeiros criados');
 
-  // 3. Criar Horários (Schedules)
+  // 3. Criar Horários
   const allBarbers = [barber1, barber2, barber3];
 
   for (const barber of allBarbers) {
     console.log(`📅 Criando agenda para ${barber.name}...`);
 
-    // Segunda (1) a Sexta (5)
     for (let day = 1; day <= 5; day++) {
       await prisma.barberSchedule.upsert({
         where: {
@@ -125,7 +122,6 @@ async function main() {
       });
     }
 
-    // Sábado (6)
     await prisma.barberSchedule.upsert({
       where: {
         barberId_dayOfWeek: {

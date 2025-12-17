@@ -7,9 +7,6 @@ import { UpdateServiceDto } from './dto/update.service.dto';
 export class ServicesService {
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Verifica se o usuário é admin
-   */
   async verifyAdmin(userId: string): Promise<boolean> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -19,10 +16,6 @@ export class ServicesService {
     return user?.role === 'admin';
   }
 
-  /**
-   * Lista todos os serviços
-   * @param activeOnly - Se true, retorna apenas serviços ativos
-   */
   async findAll(activeOnly = true) {
     const where = activeOnly ? { active: true } : {};
 
@@ -41,9 +34,6 @@ export class ServicesService {
     });
   }
 
-  /**
-   * Busca um serviço por ID
-   */
   async findById(id: string) {
     const service = await this.prisma.service.findUnique({
       where: { id },
@@ -59,9 +49,6 @@ export class ServicesService {
     return service;
   }
 
-  /**
-   * Cria um novo serviço
-   */
   async create(createServiceDto: CreateServiceDto) {
     const service = await this.prisma.service.create({
       data: {
@@ -77,9 +64,6 @@ export class ServicesService {
     return service;
   }
 
-  /**
-   * Atualiza um serviço existente
-   */
   async update(id: string, updateServiceDto: UpdateServiceDto) {
     const service = await this.prisma.service.findUnique({ where: { id } });
 
@@ -99,12 +83,7 @@ export class ServicesService {
     });
   }
 
-  /**
-   * Remove um serviço (soft delete - apenas desativa)
-   * Isso evita problemas com agendamentos existentes
-   */
   async delete(id: string) {
-    // Verifica se o serviço existe
     const service = await this.prisma.service.findUnique({
       where: { id },
     });
@@ -113,7 +92,6 @@ export class ServicesService {
       return null;
     }
 
-    // Soft delete: apenas desativa o serviço
     await this.prisma.service.update({
       where: { id },
       data: { active: false },
@@ -122,10 +100,6 @@ export class ServicesService {
     return true;
   }
 
-  /**
-   * Remove permanentemente um serviço (hard delete)
-   * Use com cuidado! Pode quebrar referências de agendamentos
-   */
   async hardDelete(id: string) {
     const service = await this.prisma.service.findUnique({
       where: { id },
@@ -142,7 +116,6 @@ export class ServicesService {
       return null;
     }
 
-    // Verifica se há agendamentos associados
     if (service._count.appointments > 0) {
       throw new Error(
         `Não é possível deletar o serviço. Existem ${service._count.appointments} agendamentos associados.`,

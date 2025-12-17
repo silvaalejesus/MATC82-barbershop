@@ -8,7 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Enums mapeados para o banco de dados
 enum UserRole {
   client
   admin
@@ -47,8 +46,6 @@ model User {
   @@map("users")
 }
 
-// Removemos o model Admin pois o SQL usa a tabela users para todos
-
 model Barber {
   id          String       @id @default(uuid())
   name        String
@@ -58,7 +55,7 @@ model Barber {
   specialties String[]
   status      BarberStatus @default(active)
   hireDate    DateTime?    @map("hire_date")
-  imageUrl    String?      @map("image_url") // Adicionado conforme init.sql
+  imageUrl    String?      @map("image_url") 
   createdAt   DateTime     @default(now()) @map("created_at")
 
   schedules    BarberSchedule[]
@@ -101,7 +98,7 @@ model Appointment {
   id            String            @id @default(uuid())
   serviceId     String            @map("service_id")
   barberId      String            @map("barber_id")
-  userId        String?           @map("user_id") // Pode ser nulo no SQL
+  userId        String?           @map("user_id") 
   customerName  String?           @map("customer_name")
   customerPhone String?           @map("customer_phone")
   date          DateTime          @db.Date

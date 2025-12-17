@@ -35,7 +35,10 @@ export class AppointmentsController {
     @Body() createAppointmentDto: CreateAppointmentDto,
   ) {
     // Valida se tem userId ou name/phone
-    if (!userId && (!createAppointmentDto.name || !createAppointmentDto.phone)) {
+    if (
+      !userId &&
+      (!createAppointmentDto.name || !createAppointmentDto.phone)
+    ) {
       throw new HttpException(
         'Nome e telefone são obrigatórios para usuários não autenticados',
         HttpStatus.BAD_REQUEST,
@@ -98,7 +101,7 @@ export class AppointmentsController {
 
     try {
       const appointment = await this.appointmentsService.cancel(id, userId);
-      
+
       if (!appointment) {
         throw new HttpException(
           'Agendamento não encontrado ou você não tem permissão',

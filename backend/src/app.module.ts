@@ -7,18 +7,17 @@ import { BarberModule } from './barber/barber.module';
 import { AppointmentModule } from './appointment/appointment.module';
 import { AvailabilityModule } from './availability/availability.module';
 import { ServicesModule } from './service/services.module';
-import { ConfigModule } from '@nestjs/config'; // <--- Importe isso
+import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true, 
+      isGlobal: true,
     }),
     UsersModule,
     PrismaModule,
     ServicesModule,
-    AuthModule, // <--- Add AuthModule here
-    // AdminModule,
+    AuthModule,
     BarberModule,
     AppointmentModule,
     AvailabilityModule,
@@ -27,4 +26,3 @@ import { AuthModule } from './auth/auth.module';
   providers: [AppService],
 })
 export class AppModule {}
-

@@ -1,5 +1,3 @@
-"use client";
-
 import type React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -20,7 +18,6 @@ import { fetcher } from "@/lib/api";
 import { useAtom } from "jotai";
 
 export default function AdminProfilePage() {
-  // const user = useAtomValue(userAtom)
   const [user, setUser] = useAtom(userAtom);
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -38,7 +35,6 @@ export default function AdminProfilePage() {
   };
 
   const handleUpdateProfile = async (formData: any) => {
-    // ⚠️ O back atual exige userId na query string
     const userId = user?.id || "id-temporario-se-nao-logado";
 
     try {
@@ -47,11 +43,9 @@ export default function AdminProfilePage() {
         body: JSON.stringify({
           name: formData.name,
           phone: formData.phone,
-          // email: formData.email, // Geralmente email não se altera fácil, mas se o back permitir...
         }),
       });
 
-      // Atualiza o estado global do utilizador
       setUser(updatedUser);
       alert("Perfil atualizado!");
     } catch (error) {

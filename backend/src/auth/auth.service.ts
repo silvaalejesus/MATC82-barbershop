@@ -4,16 +4,13 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 // import * as bcrypt from 'bcrypt';
 
-// Se necessário, importe o Enum gerado pelo Prisma para garantir tipagem,
-// mas passar a string geralmente funciona se for válida.
-import { UserRole } from '../../prisma/generated/client'; // Ajuste o caminho conforme sua estrutura gerada
+import { UserRole } from '../../prisma/generated/client';
 
 @Injectable()
 export class AuthService {
   constructor(private prisma: PrismaService) {}
 
   async register(registerUserDto: RegisterUserDto) {
-    // 1. Extrair 'role' do DTO
     const { name, email, password, phone, role } = registerUserDto;
 
     const existingUser = await this.prisma.user.findUnique({
@@ -24,11 +21,8 @@ export class AuthService {
       throw new HttpException('Email já cadastrado', HttpStatus.CONFLICT);
     }
 
-    // const hashedPassword = await bcrypt.hash(password, 10);
     const hashedPassword = password;
 
-    // 2. Usar a variável role ou o padrão 'client'
-    // Converter a string para o tipo UserRole do Prisma
     const userRole = (role as UserRole) || UserRole.client;
 
     const newUser = await this.prisma.user.create({
@@ -37,7 +31,7 @@ export class AuthService {
         email,
         passwordHash: hashedPassword,
         phone,
-        role: userRole, // Usar o valor dinâmico
+        role: userRole,
       },
       select: {
         id: true,
@@ -65,15 +59,12 @@ export class AuthService {
       throw new HttpException('Credenciais inválidas', HttpStatus.UNAUTHORIZED);
     }
 
-    // In a real application, you would compare the hashed password
-    // const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-    const isPasswordValid = user.passwordHash === password; // Mocking password comparison
+    const isPasswordValid = user.passwordHash === password;
 
     if (!isPasswordValid) {
       throw new HttpException('Credenciais inválidas', HttpStatus.UNAUTHORIZED);
     }
 
-    // Mocking a successful login
     return {
       message: 'Login bem-sucedido',
       user: {
@@ -82,7 +73,7 @@ export class AuthService {
         email: user.email,
         role: user.role,
       },
-      accessToken: 'mocked-jwt-token', // Mocked JWT token
+      accessToken: 'mocked-jwt-token',
     };
   }
 

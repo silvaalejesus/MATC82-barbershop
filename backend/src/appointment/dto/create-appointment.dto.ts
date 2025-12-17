@@ -31,4 +31,3 @@ export class CreateAppointmentDto {
   @IsString()
   phone?: string;
 }
-

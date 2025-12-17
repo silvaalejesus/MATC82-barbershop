@@ -1,4 +1,3 @@
-// src/availability/availability.controller.ts
 import {
   Controller,
   Get,
@@ -24,7 +23,6 @@ export class AvailabilityController {
       );
     }
 
-    // Valida formato da data
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       throw new HttpException(
         'Data deve estar no formato YYYY-MM-DD',
@@ -49,4 +47,3 @@ export class AvailabilityController {
     }
   }
 }
-

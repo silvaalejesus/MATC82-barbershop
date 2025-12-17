@@ -1,5 +1,3 @@
-"use client";
-
 import type React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -22,10 +20,8 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // const isAdmin = useAtomValue(isAdminAtom);
   const router = useRouter();
   const setUser = useSetAtom(userAtom);
-  // console.log("isAdmin:", isAdmin);
   const isAdmin = true;
   useEffect(() => {
     if (!isAdmin) {
@@ -34,8 +30,8 @@ export default function AdminLayout({
   }, [isAdmin, router]);
 
   const handleLogout = () => {
-    localStorage.removeItem("barber-user-id"); // Limpa a persistência
-    setUser(null); // Limpa o estado
+    localStorage.removeItem("barber-user-id"); 
+    setUser(null); 
     router.push("/login");
   };
 

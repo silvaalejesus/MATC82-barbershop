@@ -11,14 +11,12 @@ export default function AdminDashboardPage() {
   const appointments = useAtomValue(appointmentsAtom)
   const barbers = useAtomValue(barbersAtom)
 
-  // Calculate statistics
   const totalAppointments = appointments.length
   const completedAppointments = appointments.filter((a) => a.status === "completed").length
   const cancelledAppointments = appointments.filter((a) => a.status === "cancelled").length
   const confirmedAppointments = appointments.filter((a) => a.status === "confirmed").length
   const cancellationRate = totalAppointments > 0 ? ((cancelledAppointments / totalAppointments) * 100).toFixed(1) : "0"
 
-  // Calculate revenue
   const totalRevenue = appointments
     .filter((a) => a.status === "completed")
     .reduce((sum, a) => {
@@ -26,7 +24,6 @@ export default function AdminDashboardPage() {
       return sum + price
     }, 0)
 
-  // Most booked services
   const serviceCounts = appointments.reduce(
     (acc, appointment) => {
       acc[appointment.service] = (acc[appointment.service] || 0) + 1
@@ -43,7 +40,6 @@ export default function AdminDashboardPage() {
       count,
     }))
 
-  // Appointments by month (mock data for demonstration)
   const monthlyData = [
     { month: "Jan", appointments: 45, revenue: 3150 },
     { month: "Fev", appointments: 52, revenue: 3640 },
@@ -57,7 +53,6 @@ export default function AdminDashboardPage() {
     { month: "Out", appointments: 82, revenue: 5740 },
   ]
 
-  // Status distribution for pie chart
   const statusData = [
     { name: "Confirmados", value: confirmedAppointments, color: "#f97316" },
     { name: "Concluídos", value: completedAppointments, color: "#22c55e" },

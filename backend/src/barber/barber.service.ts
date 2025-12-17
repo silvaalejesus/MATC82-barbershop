@@ -14,10 +14,8 @@ export class BarbersService {
     });
     if (!barber) throw new Error('Barbeiro não encontrado');
 
-    // Usamos transaction para garantir que todos os dias sejam atualizados ou nenhum
     await this.prisma.$transaction(
       updateScheduleDto.schedules.map((item) => {
-        // Converter strings "09:00" para Date (1970-01-01T09:00:00Z)
         const toDate = (timeStr?: string) =>
           timeStr ? new Date(`1970-01-01T${timeStr}:00Z`) : null;
 

@@ -24,12 +24,10 @@ export class AvailabilityService {
       },
     });
 
-    // CORRIGIDO: isAvailable
     if (!schedule || !schedule.isAvailable) {
       return [];
     }
 
-    // CORRIGIDO: startTime, endTime, breakStart, breakEnd
     const startTime = this.formatTime(schedule.startTime);
     const endTime = this.formatTime(schedule.endTime);
     const breakStart = schedule.breakStart
@@ -39,11 +37,7 @@ export class AvailabilityService {
       ? this.formatTime(schedule.breakEnd)
       : null;
 
-    const allSlots = this.generateTimeSlots(
-      startTime,
-      endTime,
-      30, // intervalos de 30 minutos
-    );
+    const allSlots = this.generateTimeSlots(startTime, endTime, 30);
 
     const slotsWithoutBreak = this.removeBreakSlots(
       allSlots,
@@ -53,7 +47,7 @@ export class AvailabilityService {
 
     const existingAppointments = await this.prisma.appointment.findMany({
       where: {
-        barberId: barberId, // CORRIGIDO
+        barberId: barberId,
         date: searchDate,
         status: {
           in: ['confirmed'],

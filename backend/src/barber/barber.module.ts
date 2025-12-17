@@ -7,4 +7,3 @@ import { BarbersController } from './barber.controller';
   providers: [BarbersService],
 })
 export class BarberModule {}
-

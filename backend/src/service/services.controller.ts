@@ -19,10 +19,6 @@ import { UpdateServiceDto } from './dto/update.service.dto';
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
 
-  /**
-   * GET /api/services
-   * Lista todos os serviços (rota pública)
-   */
   @Get()
   async getAllServices(@Query('active') active?: string) {
     try {
@@ -37,10 +33,6 @@ export class ServicesController {
     }
   }
 
-  /**
-   * GET /api/services/:id
-   * Busca um serviço específico por ID
-   */
   @Get(':id')
   async getServiceById(@Param('id') id: string) {
     try {
@@ -62,10 +54,6 @@ export class ServicesController {
     }
   }
 
-  /**
-   * POST /api/services
-   * Cria um novo serviço (apenas admin)
-   */
   @Post()
   async createService(
     @Query('adminId') adminId: string,
@@ -91,10 +79,6 @@ export class ServicesController {
     }
   }
 
-  /**
-   * PUT /api/services/:id
-   * Atualiza um serviço existente (apenas admin)
-   */
   @Put(':id')
   async updateService(
     @Param('id') id: string,
@@ -129,11 +113,6 @@ export class ServicesController {
     }
   }
 
-  /**
-   * DELETE /api/services/:id
-   * Remove um serviço (apenas admin)
-   * Nota: Apenas desativa o serviço (active = false) ao invés de deletar
-   */
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteService(

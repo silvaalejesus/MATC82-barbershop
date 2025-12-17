@@ -38,4 +38,3 @@ export class UpdateBarberDto {
   @IsUrl()
   image?: string;
 }
-

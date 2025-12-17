@@ -1,4 +1,3 @@
-// src/barbers/barbers.controller.ts
 import {
   Body,
   Controller,
@@ -137,9 +136,8 @@ export class BarbersController {
   async updateBarberSchedule(
     @Param('id') id: string,
     @Body() updateScheduleDto: UpdateScheduleDto,
-    @Query('adminId') adminId: string, // Segurança básica
+    @Query('adminId') adminId: string,
   ) {
-    // Validação de Admin (opcional, mas recomendada)
     if (!adminId)
       throw new HttpException('adminId obrigatório', HttpStatus.FORBIDDEN);
 
