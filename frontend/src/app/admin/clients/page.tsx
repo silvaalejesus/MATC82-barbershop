@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react"
 import { useAtomValue } from "jotai"
 import { clientsAtom, appointmentsAtom } from "@/lib/store"

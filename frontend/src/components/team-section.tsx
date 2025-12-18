@@ -25,7 +25,7 @@ export function TeamSection() {
             >
               <div className="relative h-80">
                 <img
-                  src={member.image || "/placeholder.svg"}
+                  src={member.imageUrl || "/placeholder.svg"}
                   alt={member.name}
                   className="w-full h-full object-cover"
                 />

@@ -11,7 +11,7 @@ import {
   servicesAtom,  
   userAtom       
 } from "@/lib/store"
-import { fetcher } from "@/lib/api" 
+import { fetcher } from "@/lib/api"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,7 +19,13 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Calendar, Clock, User, Loader2 } from "lucide-react"
 
-export function BookingModal() {
+// 1. Definimos a interface para aceitar a prop opcional
+interface BookingModalProps {
+  onSuccess?: () => void;
+}
+
+// 2. Recebemos a prop no componente
+export function BookingModal({ onSuccess }: BookingModalProps) {
   const [open, setOpen] = useAtom(bookingModalOpenAtom)
   
   const services = useAtomValue(servicesAtom)
@@ -30,7 +36,6 @@ export function BookingModal() {
   const selectedBarber = useAtomValue(selectedBarberAtom)
   
   const [step, setStep] = useState(1)
-  
   const [availableSlots, setAvailableSlots] = useState<string[]>([])
   const [isLoadingSlots, setIsLoadingSlots] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -44,6 +49,7 @@ export function BookingModal() {
     time: "",
   })
 
+  // Preencher dados do usuário
   useEffect(() => {
     if (open && user) {
       setFormData(prev => ({
@@ -54,10 +60,11 @@ export function BookingModal() {
     }
   }, [open, user])
 
+  // Buscar Horários
   useEffect(() => {
     if (formData.barber && formData.date && step === 2) {
       setIsLoadingSlots(true)
-      setAvailableSlots([]) // Limpa anteriores
+      setAvailableSlots([]) 
 
       const queryDate = formData.date; 
 
@@ -81,8 +88,8 @@ export function BookingModal() {
       const payload = {
         serviceId: formData.service,
         barberId: formData.barber,
-        date: formData.date, // Já está em YYYY-MM-DD
-        time: formData.time, // Já está em HH:MM
+        date: formData.date,
+        time: formData.time,
         name: formData.name,
         phone: formData.phone,
       }
@@ -98,8 +105,15 @@ export function BookingModal() {
 
       alert("Agendamento realizado com sucesso!")
       setOpen(false)
+      
+      // 3. Resetar formulário
       setStep(1)
       setFormData({ name: "", phone: "", service: "", barber: "", date: "", time: "" })
+      
+      // 4. CHAMAR A FUNÇÃO DE SUCESSO (RECARREGAR A TELA)
+      if (onSuccess) {
+        onSuccess()
+      }
       
     } catch (error) {
       console.error(error)
@@ -143,7 +157,7 @@ export function BookingModal() {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Step 1: Seleção de Serviço e Barbeiro */}
+          {/* Step 1 */}
           {step === 1 && (
             <div className="space-y-6">
               <div className="space-y-3">
@@ -162,7 +176,6 @@ export function BookingModal() {
                         >
                           <div>
                             <p className="font-semibold text-foreground">{service.name}</p>
-                            {/* Ajuste conforme o retorno do seu backend (duration ou durationMinutes) */}
                             <p className="text-sm text-muted-foreground">{service.duration} min</p>
                           </div>
                           <span className="font-bold text-primary">R$ {service.price}</span>
@@ -188,7 +201,7 @@ export function BookingModal() {
                           className="flex-1 flex items-center gap-3 cursor-pointer p-3 border border-border rounded-lg hover:bg-accent"
                         >
                           <img
-                            src={barber.imageUrl || "/placeholder.svg"} // Usar imageUrl se vier do back
+                            src={barber.imageUrl || "/placeholder.svg"}
                             alt={barber.name}
                             className="w-12 h-12 rounded-full object-cover"
                           />
@@ -214,7 +227,7 @@ export function BookingModal() {
             </div>
           )}
 
-          {/* Step 2: Seleção de Data e Hora (INTEGRADO COM BACKEND) */}
+          {/* Step 2 */}
           {step === 2 && (
             <div className="space-y-6">
               <div className="bg-accent/50 p-4 rounded-lg">
@@ -236,7 +249,7 @@ export function BookingModal() {
                   id="date"
                   type="date"
                   value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value, time: "" })} // Limpa hora ao mudar data
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value, time: "" })}
                   required
                   min={new Date().toISOString().split("T")[0]}
                   className="bg-background border-border text-foreground"
@@ -291,7 +304,7 @@ export function BookingModal() {
             </div>
           )}
 
-          {/* Step 3: Confirmação e Dados Pessoais */}
+          {/* Step 3 */}
           {step === 3 && (
             <div className="space-y-6">
               <div className="bg-accent/50 p-4 rounded-lg space-y-2">

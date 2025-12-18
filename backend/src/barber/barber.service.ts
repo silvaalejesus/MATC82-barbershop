@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { BarberStatus } from '../../prisma/generated/client'; // <--- IMPORTANTE: Importar do Prisma
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { CreateBarberDto } from './dto/create-barber.dto';
 import { UpdateBarberDto } from './dto/update-barber.dto';
@@ -8,6 +9,7 @@ import { UpdateScheduleDto } from './dto/update-schedule.dto';
 export class BarbersService {
   constructor(private prisma: PrismaService) {}
 
+  // ... (método updateSchedule e findAll mantêm-se iguais) ...
   async updateSchedule(barberId: string, updateScheduleDto: UpdateScheduleDto) {
     const barber = await this.prisma.barber.findUnique({
       where: { id: barberId },
@@ -21,10 +23,7 @@ export class BarbersService {
 
         return this.prisma.barberSchedule.upsert({
           where: {
-            barberId_dayOfWeek: {
-              barberId: barberId,
-              dayOfWeek: item.dayOfWeek,
-            },
+            barberId_dayOfWeek: { barberId, dayOfWeek: item.dayOfWeek },
           },
           update: {
             isAvailable: item.isAvailable,
@@ -34,7 +33,7 @@ export class BarbersService {
             breakEnd: toDate(item.breakEnd),
           },
           create: {
-            barberId: barberId,
+            barberId,
             dayOfWeek: item.dayOfWeek,
             isAvailable: item.isAvailable,
             startTime: toDate(item.startTime)!,
@@ -45,21 +44,16 @@ export class BarbersService {
         });
       }),
     );
-
     return { message: 'Horários atualizados com sucesso' };
   }
 
   async findAll() {
     return this.prisma.barber.findMany({
-      where: {
-        status: 'active',
-      },
-      orderBy: {
-        name: 'asc',
-      },
+      orderBy: { name: 'asc' },
     });
   }
 
+  // --- CORREÇÃO NO CREATE ---
   async create(createBarberDto: CreateBarberDto) {
     const barber = await this.prisma.barber.create({
       data: {
@@ -67,12 +61,17 @@ export class BarbersService {
         email: createBarberDto.email,
         phone: createBarberDto.phone,
         specialties: createBarberDto.specialties,
+        // NOVOS CAMPOS MAPEADOS:
+        role: createBarberDto.role,
+        status: createBarberDto.status as BarberStatus, // Cast para o Enum do Prisma
+        imageUrl: createBarberDto.image, // DTO usa 'image', Banco usa 'imageUrl'
       },
     });
 
     return barber;
   }
 
+  // --- CORREÇÃO NO UPDATE ---
   async update(id: string, updateBarberDto: UpdateBarberDto) {
     const barber = await this.prisma.barber.findUnique({
       where: { id },
@@ -91,6 +90,12 @@ export class BarbersService {
         ...(updateBarberDto.specialties && {
           specialties: updateBarberDto.specialties,
         }),
+        // NOVOS CAMPOS MAPEADOS:
+        ...(updateBarberDto.role && { role: updateBarberDto.role }),
+        ...(updateBarberDto.status && {
+          status: updateBarberDto.status as BarberStatus,
+        }),
+        ...(updateBarberDto.image && { imageUrl: updateBarberDto.image }),
       },
     });
 
@@ -102,9 +107,7 @@ export class BarbersService {
       where: { id },
     });
 
-    if (!barber) {
-      return null;
-    }
+    if (!barber) return null;
 
     await this.prisma.barber.delete({
       where: { id },

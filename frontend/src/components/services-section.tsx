@@ -13,7 +13,7 @@ export function ServicesSection() {
   const setBookingModalOpen = useSetAtom(bookingModalOpenAtom);
   const setSelectedService = useSetAtom(selectedServiceAtom);
   const services = useAtomValue(servicesAtom);
-  
+
   const handleBookService = (serviceId: string) => {
     setSelectedService(serviceId);
     setBookingModalOpen(true);
@@ -38,7 +38,7 @@ export function ServicesSection() {
             >
               <div className="relative h-64">
                 <img
-                  src={service.image || "/placeholder.svg"}
+                  src={service.imageUrl || "/placeholder.svg"}
                   alt={service.name}
                   className="w-full h-full object-cover"
                 />

@@ -12,9 +12,10 @@ import {
   bookingModalOpenAtom,
   isAuthenticatedAtom,
   userAtom,
+  isAdminAtom, // Importar isAdminAtom
 } from "@/lib/store";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { Calendar, LogOut, User } from "lucide-react";
+import { Calendar, LogOut, User, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -22,13 +23,21 @@ export function Header() {
   const router = useRouter();
   const setBookingModalOpen = useSetAtom(bookingModalOpenAtom);
   const isAuthenticated = useAtomValue(isAuthenticatedAtom);
+  const isAdmin = useAtomValue(isAdminAtom);
   const [user, setUser] = useAtom(userAtom);
 
   const handleLogout = () => {
-    localStorage.removeItem("barber-user-id"); // Limpa a persistência
-    setUser(null); // Limpa o estado
+    // 1. Limpeza agressiva: remove todas as chaves que o app pode ter usado
+    localStorage.removeItem("barber-user-id");       // Chave atual (usada no login)
+    localStorage.removeItem("barber-user-session");  // Chave antiga (causadora de conflitos)
+    
+    // 2. Limpa o estado global
+    setUser(null);
+    
+    // 3. Redireciona
     router.push("/login");
   };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -40,78 +49,64 @@ export function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
-          <a
-            href="/#inicio"
-            className="text-foreground hover:text-primary transition-colors"
-          >
+          <Link href="/#inicio" className="text-foreground hover:text-primary transition-colors">
             Início
-          </a>
-          <Link
-            href="/services"
-            className="text-foreground hover:text-primary transition-colors"
-          >
+          </Link>
+          <Link href="/services" className="text-foreground hover:text-primary transition-colors">
             Serviços
           </Link>
-          <Link
-            href="/barbers"
-            className="text-foreground hover:text-primary transition-colors"
-          >
+          <Link href="/barbers" className="text-foreground hover:text-primary transition-colors">
             Barbeiros
           </Link>
-          <Link
-            href="/plans"
-            className="text-foreground hover:text-primary transition-colors"
-          >
+          <Link href="/plans" className="text-foreground hover:text-primary transition-colors">
             Planos
           </Link>
-          <a
-            href="/#contato"
-            className="text-foreground hover:text-primary transition-colors"
-          >
+          <Link href="/#contato" className="text-foreground hover:text-primary transition-colors">
             Contato
-          </a>
+          </Link>
         </nav>
 
         <div className="flex items-center gap-3">
           {isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="rounded-full bg-transparent"
-                >
+                <Button variant="outline" size="icon" className="rounded-full bg-transparent">
                   <User className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="w-56 bg-card border-border"
-              >
+              <DropdownMenuContent align="end" className="w-56 bg-card border-border">
                 <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium text-foreground">
-                    {user?.name}
-                  </p>
+                  <p className="text-sm font-medium text-foreground">{user?.name}</p>
                   <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
                 <DropdownMenuSeparator />
+                
                 <DropdownMenuItem asChild>
                   <Link href="/profile" className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
                     Meu Perfil
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/appointments" className="cursor-pointer">
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Meus Agendamentos
-                  </Link>
-                </DropdownMenuItem>
+
+                {/* Exibe Dashboard apenas para Admin/Barbeiro */}
+                {isAdmin ? (
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin/dashboard" className="cursor-pointer">
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      Painel Administrativo
+                    </Link>
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem asChild>
+                    <Link href="/appointments" className="cursor-pointer">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      Meus Agendamentos
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={handleLogout}
-                  className="cursor-pointer text-destructive"
-                >
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sair
                 </DropdownMenuItem>
@@ -123,10 +118,7 @@ export function Header() {
             </Button>
           )}
 
-          <Button
-            onClick={() => setBookingModalOpen(true)}
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
-          >
+          <Button onClick={() => setBookingModalOpen(true)} className="bg-primary text-primary-foreground hover:bg-primary/90">
             Agendar Horário
           </Button>
         </div>

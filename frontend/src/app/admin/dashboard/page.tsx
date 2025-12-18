@@ -1,32 +1,63 @@
 "use client"
 
-import { useAtomValue } from "jotai"
+import { useEffect } from "react"
+import { useAtomValue, useSetAtom } from "jotai"
 import { appointmentsAtom, barbersAtom } from "@/lib/store"
+import { fetcher } from "@/lib/api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, Scissors, AlertCircle, Calendar, DollarSign } from "lucide-react"
+import { Users, Scissors, AlertCircle, Calendar, DollarSign, Loader2 } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Pie, PieChart, Cell } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 
 export default function AdminDashboardPage() {
   const appointments = useAtomValue(appointmentsAtom)
   const barbers = useAtomValue(barbersAtom)
+  
+  // Setters para atualizar o estado global
+  const setAppointments = useSetAtom(appointmentsAtom)
+  const setBarbers = useSetAtom(barbersAtom)
+
+  // 1. Buscar dados reais ao carregar a página
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [appointmentsData, barbersData] = await Promise.all([
+          fetcher("/appointments"),
+          fetcher("/barbers")
+        ])
+        setAppointments(appointmentsData || [])
+        setBarbers(barbersData || [])
+      } catch (error) {
+        console.error("Erro ao carregar dados do dashboard:", error)
+      }
+    }
+    loadData()
+  }, [setAppointments, setBarbers])
+
+  // --- CÁLCULOS COM DADOS REAIS ---
 
   const totalAppointments = appointments.length
   const completedAppointments = appointments.filter((a) => a.status === "completed").length
   const cancelledAppointments = appointments.filter((a) => a.status === "cancelled").length
   const confirmedAppointments = appointments.filter((a) => a.status === "confirmed").length
-  const cancellationRate = totalAppointments > 0 ? ((cancelledAppointments / totalAppointments) * 100).toFixed(1) : "0"
+  
+  const cancellationRate = totalAppointments > 0 
+    ? ((cancelledAppointments / totalAppointments) * 100).toFixed(1) 
+    : "0"
 
   const totalRevenue = appointments
-    .filter((a) => a.status === "completed")
+    .filter((a) => a.status === "completed" || a.status === "confirmed")
     .reduce((sum, a) => {
-      const price = Number.parseFloat(a.price.replace("R$", "").replace(",", ".").trim())
-      return sum + price
+      // Garante conversão segura seja string ou number
+      const priceVal = Number(a.price) || 0
+      return sum + priceVal
     }, 0)
 
+  // Agrupa serviços (Ajustado para acessar o objeto service.name)
   const serviceCounts = appointments.reduce(
-    (acc, appointment) => {
-      acc[appointment.service] = (acc[appointment.service] || 0) + 1
+    (acc, appointment: any) => {
+      const serviceName = appointment.service?.name || "Desconhecido"
+      acc[serviceName] = (acc[serviceName] || 0) + 1
       return acc
     },
     {} as Record<string, number>,
@@ -40,24 +71,36 @@ export default function AdminDashboardPage() {
       count,
     }))
 
+  // Gera dados mensais dinâmicos baseados nos agendamentos
   const monthlyData = [
-    { month: "Jan", appointments: 45, revenue: 3150 },
-    { month: "Fev", appointments: 52, revenue: 3640 },
-    { month: "Mar", appointments: 48, revenue: 3360 },
-    { month: "Abr", appointments: 61, revenue: 4270 },
-    { month: "Mai", appointments: 55, revenue: 3850 },
-    { month: "Jun", appointments: 67, revenue: 4690 },
-    { month: "Jul", appointments: 72, revenue: 5040 },
-    { month: "Ago", appointments: 68, revenue: 4760 },
-    { month: "Set", appointments: 75, revenue: 5250 },
-    { month: "Out", appointments: 82, revenue: 5740 },
-  ]
+    "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", 
+    "Jul", "Ago", "Set", "Out", "Nov", "Dez"
+  ].map((month, index) => {
+    // Filtra agendamentos deste mês (ignorando ano para simplificar visualização anual recorrente)
+    const appsInMonth = appointments.filter(a => {
+        const d = new Date(a.date);
+        return d.getMonth() === index && a.status !== 'cancelled';
+    });
+
+    const revenue = appsInMonth.reduce((sum, a) => sum + (Number(a.price) || 0), 0);
+
+    return {
+        month,
+        appointments: appsInMonth.length,
+        revenue
+    }
+  });
 
   const statusData = [
     { name: "Confirmados", value: confirmedAppointments, color: "#f97316" },
     { name: "Concluídos", value: completedAppointments, color: "#22c55e" },
     { name: "Cancelados", value: cancelledAppointments, color: "#ef4444" },
-  ]
+  ].filter(item => item.value > 0) // Só mostra no gráfico se tiver valor
+
+  // Loading state simples se não tiver dados ainda
+  if (appointments.length === 0 && barbers.length === 0) {
+     // Opcional: retornar um skeleton ou loading, ou apenas deixar renderizar vazio
+  }
 
   return (
     <div className="space-y-6">
@@ -75,7 +118,7 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalAppointments}</div>
-            <p className="text-xs text-muted-foreground">Este mês: 82 agendamentos</p>
+            <p className="text-xs text-muted-foreground">Registrados no sistema</p>
           </CardContent>
         </Card>
 
@@ -107,15 +150,17 @@ export default function AdminDashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R$ {totalRevenue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">Serviços concluídos</p>
+            <div className="text-2xl font-bold">
+                R$ {totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </div>
+            <p className="text-xs text-muted-foreground">Faturamento bruto</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Charts */}
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Agendamentos por Mês</CardTitle>
             <CardDescription>Número de clientes atendidos mensalmente</CardDescription>
@@ -128,7 +173,7 @@ export default function AdminDashboardPage() {
                   color: "#f97316",
                 },
               }}
-              className="h-[300px]"
+              className="h-[300px] w-full"
             >
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthlyData}>
@@ -143,7 +188,7 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Status dos Agendamentos</CardTitle>
             <CardDescription>Distribuição por status</CardDescription>
@@ -151,20 +196,11 @@ export default function AdminDashboardPage() {
           <CardContent>
             <ChartContainer
               config={{
-                confirmed: {
-                  label: "Confirmados",
-                  color: "#f97316",
-                },
-                completed: {
-                  label: "Concluídos",
-                  color: "#22c55e",
-                },
-                cancelled: {
-                  label: "Cancelados",
-                  color: "#ef4444",
-                },
+                confirmed: { label: "Confirmados", color: "#f97316" },
+                completed: { label: "Concluídos", color: "#22c55e" },
+                cancelled: { label: "Cancelados", color: "#ef4444" },
               }}
-              className="h-[300px]"
+              className="h-[300px] w-full"
             >
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -203,7 +239,7 @@ export default function AdminDashboardPage() {
           <div className="space-y-4">
             {topServices.map((item, index) => {
               const total = appointments.length
-              const percentage = ((item.count / total) * 100).toFixed(1)
+              const percentage = total > 0 ? ((item.count / total) * 100).toFixed(1) : "0"
               return (
                 <div key={item.service} className="flex items-center gap-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
@@ -237,15 +273,17 @@ export default function AdminDashboardPage() {
           <div className="space-y-4">
             {barbers.map((barber) => {
               const barberAppointments = appointments.filter(
-                (a) => a.barber === barber.name && a.status === "completed",
+                (a: any) => a.barber?.name === barber.name && (a.status === "completed" || a.status === "confirmed"),
               )
               const count = barberAppointments.length
-              const maxCount = Math.max(
-                ...barbers.map(
-                  (b) => appointments.filter((a) => a.barber === b.name && a.status === "completed").length,
-                ),
+              
+              // Evita divisão por zero
+              const counts = barbers.map(
+                  (b) => appointments.filter((a: any) => a.barber?.name === b.name && (a.status === "completed" || a.status === "confirmed")).length
               )
-              const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0
+              const maxCount = Math.max(...counts, 1) // Minimo 1 para evitar NaN
+              
+              const percentage = (count / maxCount) * 100
 
               return (
                 <div key={barber.id} className="flex items-center gap-4">

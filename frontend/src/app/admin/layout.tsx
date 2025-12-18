@@ -1,3 +1,4 @@
+"use client";
 import type React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -30,8 +31,8 @@ export default function AdminLayout({
   }, [isAdmin, router]);
 
   const handleLogout = () => {
-    localStorage.removeItem("barber-user-id"); 
-    setUser(null); 
+    localStorage.removeItem("barber-user-id");
+    setUser(null);
     router.push("/login");
   };
 
@@ -60,12 +61,12 @@ export default function AdminLayout({
                 Barbeiros
               </Button>
             </Link>
-            <Link href="/admin/schedule">
+            {/* <Link href="/admin/schedule">
               <Button variant="ghost" className="w-full justify-start">
                 <Calendar className="mr-2 h-4 w-4" />
                 Horários
               </Button>
-            </Link>
+            </Link> */}
             <Link href="/admin/clients">
               <Button variant="ghost" className="w-full justify-start">
                 <BarChart3 className="mr-2 h-4 w-4" />
