@@ -61,9 +61,6 @@ export function Header() {
           <Link href="/plans" className="text-foreground hover:text-primary transition-colors">
             Planos
           </Link>
-          <Link href="/#contato" className="text-foreground hover:text-primary transition-colors">
-            Contato
-          </Link>
         </nav>
 
         <div className="flex items-center gap-3">
